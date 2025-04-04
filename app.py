@@ -11,7 +11,7 @@ from utils.report_generator import generate_learning_report
 import pandas as pd
 import matplotlib.font_manager as fm
 
-fm.fontManager.addfont(r"C:\Users\pc\Downloads\Fonts_Package_fc12b50164b107e5d087c5f0bbbf6d82\SimHei\SimHei.ttf") #临时注册新的全局字体
+fm.fontManager.addfont('master\SimHei.ttf') #临时注册新的全局字体
 
 plt.rcParams['font.sans-serif']=['SimHei'] #用来正常显示中文标签
 
