@@ -1,3 +1,4 @@
+from collections import defaultdict
 import streamlit as st
 import matplotlib.pyplot as plt
 import matplotlib
@@ -69,13 +70,12 @@ def extract_text_from_image(image):
     return pytesseract.image_to_string(image, lang="chi_sim")
 
 
-def generate_learning_report(data):
+def picture(data):
     subjects = data.get("subjects", {})
     report_lines = ["## 📝 学习报告"]
 
     # 创建一个空的 DataFrame，用于展示数据
     report_data = []
-
     subject_names = []
     time_spent_data = []
 
@@ -86,20 +86,22 @@ def generate_learning_report(data):
             "错题描述": info.get("mistake", '无'),
             "学习备注": info.get("notes", '无')
         })
-
         subject_names.append(subject)
         time_spent_data.append(info.get("time_spent", 0))
 
-    df = pd.DataFrame(report_data)
+    # 自定义标签显示具体时间和百分比
+    def func(pct, allvalues):
+        absolute = int(pct / 100.*sum(allvalues))  # 计算具体时间
+        return f"{absolute}小时\n({pct:.1f}%)"  # 格式化输出
 
-    # 绘制扇形统计图
+    # 绘制合并所有科目学习时间的饼图
     fig, ax = plt.subplots()
-    ax.pie(time_spent_data, labels=subject_names, autopct='%1.1f%%', startangle=90)
+    ax.pie(time_spent_data, labels=subject_names, autopct=lambda pct: func(pct, time_spent_data), startangle=50)
     ax.axis('equal')  # 保证饼图是圆形的
-    st.write("### 学习时间分布图")
-    st.pyplot(fig)
+    report_lines.append("### 学习时间分布图")
 
-    return "\n".join(report_lines)
+    # 将图片保存到文件并通过 Streamlit 显示
+    st.pyplot(fig)  # This will display the pie chart directly
 
 
 
@@ -182,8 +184,9 @@ def main():
         data = load_data()
         if data:
             with st.spinner("正在分析..."):
+                picture(data)
                 report = generate_learning_report(data)
-            st.markdown(report)
+                st.markdown(report)
         else:
             st.warning("请先在左侧填写学习数据")
 
