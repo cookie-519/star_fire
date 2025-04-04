@@ -12,8 +12,9 @@ import pandas as pd
 from matplotlib.font_manager import FontProperties
  
 font = FontProperties(fname=r"C:\Users\pc\Downloads\Fonts_Package_fc12b50164b107e5d087c5f0bbbf6d82\SimHei\SimHei.ttf")
-matplotlib.rcParams["font.family"] = ( "SimHei")
-matplotlib.rcParams["axes.unicode_minus"] = False
+plt.rcParams['font.sans-serif']=['SimHei'] #用来正常显示中文标签
+
+plt.rcParams['axes.unicode_minus']=False#用来正常显示负号
 
 
 DATA_PATH = "data/user_data.json"
