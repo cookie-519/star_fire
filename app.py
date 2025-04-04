@@ -10,10 +10,8 @@ from kimi_api import ask_kimi
 from utils.report_generator import generate_learning_report
 import pandas as pd
 
-matplotlib.rcParams["font.family"] = (
-    "Microsoft YaHei"  # 或 'SimHei'，这两种字体都支持中文
-)
-matplotlib.rcParams["axes.unicode_minus"] = False
+matplotlib.rcParams["font.family"] = "DejaVu Sans"
+matplotlib.rcParams["axes.unicode_minus"] = False  # 解决负号显示问题
 
 DATA_PATH = "data/user_data.json"
 
