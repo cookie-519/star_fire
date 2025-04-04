@@ -10,8 +10,10 @@ from kimi_api import ask_kimi
 from utils.report_generator import generate_learning_report
 import pandas as pd
 import matplotlib.font_manager as fm
+import os
 
-fm.fontManager.addfont('master/SimHei.ttf') #临时注册新的全局字体
+fm.fontManager.addfont('SimHei.ttf')  # 确保文件在当前目录
+
 
 matplotlib.rcParams["font.family"] = ("SimHei")
 matplotlib.rcParams["axes.unicode_minus"] = False
