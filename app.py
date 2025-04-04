@@ -74,10 +74,15 @@ def main():
     if menu == "输入学习数据":
         st.header("📥 输入你的学习数据")
 
-        # 学科选择
-        all_subjects = ["高数", "高代", "英语", "大物", "程序设计"]
-        selected_subjects = st.multiselect("选择你想记录的学科", all_subjects)
+        # 用户自定义学科数量和名称
+        num_subjects = st.number_input("请输入学科数量", min_value=1, max_value=10, value=5)
 
+        custom_subjects = []
+        for i in range(num_subjects):
+            subject_name = st.text_input(f"请输入第 {i+1} 门学科名称", key=f"subject_{i}")
+            custom_subjects.append(subject_name)
+
+        selected_subjects = custom_subjects
         subject_data = {}
         all_mistakes = []
 
