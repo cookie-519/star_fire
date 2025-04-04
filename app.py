@@ -9,7 +9,9 @@ from PIL import Image
 from kimi_api import ask_kimi
 from utils.report_generator import generate_learning_report
 import pandas as pd
-
+from matplotlib.font_manager import FontProperties
+ 
+font = FontProperties(fname=r"C:\Users\pc\Downloads\Fonts_Package_fc12b50164b107e5d087c5f0bbbf6d82\SimHei\SimHei.ttf")
 matplotlib.rcParams["font.family"] = ( "SimHei")
 matplotlib.rcParams["axes.unicode_minus"] = False
 
@@ -97,7 +99,7 @@ def picture(data):
     fig, ax = plt.subplots()
     ax.pie(time_spent_data, labels=subject_names, autopct=lambda pct: func(pct, time_spent_data), startangle=50)
     ax.axis('equal')  # 保证饼图是圆形的
-    report_lines.append("### 学习时间分布图").decode('unicode-escape')
+    report_lines.append("### 学习时间分布图")
     
     # 将图片保存到文件并通过 Streamlit 显示
     st.pyplot(fig)  # This will display the pie chart directly
