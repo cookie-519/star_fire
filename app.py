@@ -97,9 +97,13 @@ def picture(data):
     ax.pie(time_spent_data, labels=subject_names, autopct=lambda pct: func(pct, time_spent_data), startangle=50)
     ax.axis('equal')  # 保证饼图是圆形的
     report_lines.append("### 学习时间分布图")
+    fig.savefig("study_time_distribution.png")
 
     # 将图片保存到文件并通过 Streamlit 显示
-    st.pyplot(fig)  # This will display the pie chart directly
+    #st.pyplot(fig)  # This will display the pie chart directly
+# 在 Streamlit 中显示图片
+    st.image("study_time_distribution.png")
+
 
 
 
