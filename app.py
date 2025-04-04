@@ -118,19 +118,9 @@ def main():
         st.header("📊 AI生成个性化学习报告")
         data = load_data()
         if data:
-            def generate_learning_report(data):
-                subjects = data.get("subjects", {})
-                report_lines = ["## 📝 学习报告"]
-
-                for subject, info in subjects.items():
-                    report_lines.append(f"### 📘 {subject}")
-                    report_lines.append(f"- 学习时间：{info.get('time_spent', 0)} 小时/天")
-                    report_lines.append(f"- 错题描述：{info.get('mistake', '无')}")
-                    report_lines.append(f"- 学习备注：{info.get('notes', '无')}")
-                    report_lines.append("")
-
-                return "\n".join(report_lines)
-
+            with st.spinner("正在分析..."):
+                report = generate_learning_report(data)
+            st.markdown(report)
         else:
             st.warning("请先在左侧填写学习数据")
 
