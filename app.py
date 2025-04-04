@@ -82,20 +82,19 @@ def main():
 
             mistake = st.text_area(f"{subject} 的错题描述（可编辑）", extracted_text, key=f"{subject}_mistake")
             notes = st.text_area(f"{subject} 的其他学习备注", key=f"{subject}_notes")
+            time_spent = st.slider(f"⏱️ 每天用于 {subject} 的学习时间（小时）", 0, 12, 1, key=f"{subject}_time")
 
             if mistake:
                 all_mistakes.append(f"{subject}：{mistake}")
 
             subject_data[subject] = {
                 "mistake": mistake,
-                "notes": notes
+                "notes": notes,
+                "time_spent": time_spent
             }
-
-        time_spent = st.slider("⏱️ 平均每天学习时间（小时）", 0, 12, 2)
 
         if st.button("保存数据"):
             data = {
-                "time_spent": time_spent,
                 "subjects": subject_data
             }
             save_data(data)
@@ -119,9 +118,19 @@ def main():
         st.header("📊 AI生成个性化学习报告")
         data = load_data()
         if data:
-            with st.spinner("正在分析..."):
-                report = generate_learning_report(data)
-            st.markdown(report)
+            def generate_learning_report(data):
+                subjects = data.get("subjects", {})
+                report_lines = ["## 📝 学习报告"]
+
+                for subject, info in subjects.items():
+                    report_lines.append(f"### 📘 {subject}")
+                    report_lines.append(f"- 学习时间：{info.get('time_spent', 0)} 小时/天")
+                    report_lines.append(f"- 错题描述：{info.get('mistake', '无')}")
+                    report_lines.append(f"- 学习备注：{info.get('notes', '无')}")
+                    report_lines.append("")
+
+                return "\n".join(report_lines)
+
         else:
             st.warning("请先在左侧填写学习数据")
 
