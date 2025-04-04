@@ -4,4 +4,3 @@ streamlit
 requests
 pillow
 pytesseract
-kimi_api
