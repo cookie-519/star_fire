@@ -41,15 +41,28 @@ def load_data():
         return {}
 
 
-# 保存数据
-def save_data(data):
+# 保存数据，支持数据累加
+def save_data(new_data):
+    existing_data = load_data()
+
+    # 累加数据
+    if "subjects" in existing_data:
+        existing_data["subjects"].update(new_data["subjects"])
+    else:
+        existing_data = new_data
+
     with open(DATA_PATH, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+        json.dump(existing_data, f, ensure_ascii=False, indent=2)
+
 
 
 # 解析图片中的错题内容
 def extract_text_from_image(image):
     return pytesseract.image_to_string(image, lang="chi_sim")
+
+
+
+
 
 
 def main():
@@ -99,6 +112,12 @@ def main():
             }
             save_data(data)
             st.success("✅ 数据已保存！")
+
+        if st.button("清空所有数据"):
+            with open(DATA_PATH, "w", encoding="utf-8") as f:
+                json.dump({}, f, ensure_ascii=False, indent=2)
+            st.success("✅ 所有数据已清空！")
+
 
         # ✅ 错题分析区
         if all_mistakes:
