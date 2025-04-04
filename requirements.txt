@@ -4,3 +4,4 @@ streamlit
 requests
 pillow
 pytesseract
+matplotlib
