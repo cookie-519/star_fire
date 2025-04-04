@@ -1,12 +1,18 @@
-import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
+import matplotlib
 import json
 import requests
 import pytesseract
 from PIL import Image
 from kimi_api import ask_kimi
 from utils.report_generator import generate_learning_report
+import pandas as pd
+
+matplotlib.rcParams["font.family"] = (
+    "Microsoft YaHei"  # 或 'SimHei'，这两种字体都支持中文
+)
+matplotlib.rcParams["axes.unicode_minus"] = False
 
 DATA_PATH = "data/user_data.json"
 
@@ -86,10 +92,6 @@ def generate_learning_report(data):
 
     df = pd.DataFrame(report_data)
 
-    # 输出表格
-    st.write("### 学习情况表格")
-    st.dataframe(df)
-
     # 绘制扇形统计图
     fig, ax = plt.subplots()
     ax.pie(time_spent_data, labels=subject_names, autopct='%1.1f%%', startangle=90)
@@ -112,7 +114,7 @@ def main():
         st.header("📥 输入你的学习数据")
 
         # 用户自定义学科数量和名称
-        num_subjects = st.number_input("请输入学科数量", min_value=1, max_value=10, value=5)
+        num_subjects = st.number_input("请输入学科数量", min_value=1, max_value=10, value=1)
 
         custom_subjects = []
         for i in range(num_subjects):
