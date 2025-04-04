@@ -1,2 +1,7 @@
 streamlit==1.31.1
 requests==2.31.0
+streamlit
+requests
+pillow
+pytesseract
+kimi_api
