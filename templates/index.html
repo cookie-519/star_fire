@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小知学伴 - AI学习助手</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { text-align: center; color: #333; }
+        .form-group { margin-bottom: 20px; }
+        label { font-weight: bold; }
+        input[type="text"], input[type="file"], textarea { width: 100%; padding: 10px; }
+        textarea { height: 100px; }
+        button { padding: 10px 20px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        .card { border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; }
+        .card-header { font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🎓 小知学伴 - AI学习助手</h1>
+
+    <form action="/submit_data" method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="subjects">选择学科：</label>
+            <select name="subjects" id="subjects" multiple>
+                <option value="高数">高数</option>
+                <option value="高代">高代</option>
+                <option value="英语">英语</option>
+                <option value="大物">大物</option>
+                <option value="程序设计">程序设计</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="time_spent">每天学习时间（小时）：</label>
+            <input type="text" name="time_spent" required>
+        </div>
+
+        <div class="form-group">
+            <label for="image">上传错题图片：</label>
+            <input type="file" name="image" accept="image/*">
+        </div>
+
+        <button type="submit">保存数据</button>
+    </form>
+
+    <a href="/generate_report">生成学习报告</a>
+</div>
+
+</body>
+</html>
