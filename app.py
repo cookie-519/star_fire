@@ -1,4 +1,5 @@
 import streamlit as st
+import matplotlib.pyplot as plt
 import json
 import requests
 import pytesseract
@@ -61,6 +62,41 @@ def extract_text_from_image(image):
     return pytesseract.image_to_string(image, lang="chi_sim")
 
 
+def generate_learning_report(data):
+    subjects = data.get("subjects", {})
+    report_lines = ["## 📝 学习报告"]
+
+    # 创建一个空的 DataFrame，用于展示数据
+    report_data = []
+
+    subject_names = []
+    time_spent_data = []
+
+    for subject, info in subjects.items():
+        report_data.append({
+            "学科": subject,
+            "学习时间 (小时/天)": info.get("time_spent", 0),
+            "错题描述": info.get("mistake", '无'),
+            "学习备注": info.get("notes", '无')
+        })
+
+        subject_names.append(subject)
+        time_spent_data.append(info.get("time_spent", 0))
+
+    df = pd.DataFrame(report_data)
+
+    # 输出表格
+    st.write("### 学习情况表格")
+    st.dataframe(df)
+
+    # 绘制扇形统计图
+    fig, ax = plt.subplots()
+    ax.pie(time_spent_data, labels=subject_names, autopct='%1.1f%%', startangle=90)
+    ax.axis('equal')  # 保证饼图是圆形的
+    st.write("### 学习时间分布图")
+    st.pyplot(fig)
+
+    return "\n".join(report_lines)
 
 
 
