@@ -11,7 +11,7 @@ from utils.report_generator import generate_learning_report
 import pandas as pd
 import matplotlib.font_manager as fm
 
-fm.fontManager.addfont('master\SimHei.ttf') #临时注册新的全局字体
+fm.fontManager.addfont('master/SimHei.ttf') #临时注册新的全局字体
 
 matplotlib.rcParams["font.family"] = ("SimHei")
 matplotlib.rcParams["axes.unicode_minus"] = False
