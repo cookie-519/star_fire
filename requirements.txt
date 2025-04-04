@@ -5,4 +5,3 @@ requests
 pillow
 pytesseract
 matplotlib
-matplotlib.pyplot
