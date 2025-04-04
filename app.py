@@ -10,11 +10,8 @@ from kimi_api import ask_kimi
 from utils.report_generator import generate_learning_report
 import pandas as pd
 
-mpl.font_manager.fontManager.addfont('字体/SimHei.ttf') #临时注册新的全局字体
-
-plt.rcParams['font.sans-serif']=['SimHei'] #用来正常显示中文标签
-
-plt.rcParams['axes.unicode_minus']=False#用来正常显示负号
+matplotlib.rcParams["font.family"] = ( "SimHei")
+matplotlib.rcParams["axes.unicode_minus"] = False
 
 
 DATA_PATH = "data/user_data.json"
