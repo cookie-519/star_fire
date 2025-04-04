@@ -13,9 +13,9 @@ import matplotlib.font_manager as fm
 
 fm.fontManager.addfont('master\SimHei.ttf') #临时注册新的全局字体
 
-plt.rcParams['font.sans-serif']=['SimHei'] #用来正常显示中文标签
+matplotlib.rcParams["font.family"] = ("SimHei")
+matplotlib.rcParams["axes.unicode_minus"] = False
 
-plt.rcParams['axes.unicode_minus']=False#用来正常显示负号
 
 
 DATA_PATH = "data/user_data.json"
