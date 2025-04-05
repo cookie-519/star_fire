@@ -85,7 +85,7 @@ def extract_text_from_image(image):
         raise ValueError("No image provided. Please upload an image.")
     
     # 使用 easyocr 读取图像中的文本
-    reader = easyocr.Reader(['en', 'ch_sim', 'math'])  
+    reader = easyocr.Reader(['en', 'ch_sim'])  
     result = reader.readtext(image)
     
     # 分类存储英文和中文文本
