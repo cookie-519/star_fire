@@ -6,3 +6,5 @@ pillow
 pytesseract
 matplotlib
 packages
+opencv-python-headless==4.7.0.68
+
