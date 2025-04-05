@@ -163,7 +163,6 @@ def main():
             extracted_text = ""
 
             if uploaded_image:
-                image = Image.open(uploaded_image)
                 extracted_text = extract_text_from_image(image)
                 st.text_area(f"{subject} 识别出的错题内容", extracted_text, key=f"{subject}_ocr_text")
 
@@ -223,16 +222,14 @@ def main():
 
         st.header("🧑‍🏫 提问任意学习问题")
 
-        uploaded_question_image = st.file_uploader("上传问题图片", type=["png", "jpg", "jpeg"], key="question_image")
+        uploaded_image = st.file_uploader(f"上传 {subject} 的错题图片", type=["png", "jpg", "jpeg"],
+                                  key=f"{subject}_image")
+    extracted_text = ""
 
-        extracted_question_text = ""
+    if uploaded_image:
+        extracted_text = extract_text_from_image(uploaded_image)
+        st.text_area(f"{subject} 识别出的错题内容", extracted_text, key=f"{subject}_ocr_text")
 
-        if uploaded_question_image:
-            image = Image.open(uploaded_question_image)
-
-            extracted_question_text = extract_text_from_image(image)
-
-            st.text_area("识别出的问题", extracted_question_text, key="question_ocr_text")
 
         question = st.text_area("请输入你的问题（可编辑）", extracted_question_text)
 
