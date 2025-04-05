@@ -1,7 +1,7 @@
 import requests
 
 KIMI_API_KEY = "sk-I0dxd07uFwsojf6460SVpMDBG3d2jGLgqtyBwD2WjcJeJ6vd"
-KIMI_API_URL = "https://api.moonshot.cn/v1"
+KIMI_API_URL = "https://api.moonshot.cn/v1/chat/completions"
 
 def ask_kimi(prompt):
     headers = {
