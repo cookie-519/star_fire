@@ -27,6 +27,7 @@ DATA_PATH = "data/user_data.json"
 
 
 # ========== 工具函数 ==========
+
 def load_data():
     try:
         with open(DATA_PATH, "r", encoding="utf-8") as f:
@@ -119,6 +120,7 @@ def draw_pie_chart(data):
 
 
 # ========== 页面函数 ==========
+
 def input_learning_data():
     st.header("📥 输入你的学习数据")
 
@@ -212,6 +214,7 @@ def ai_question_answer():
 
 
 # ========== 主函数 ==========
+
 def main():
     st.set_page_config(page_title="小知学伴", layout="wide")
     st.title("🎓 小知学伴 - AI学习助手")
