@@ -12,18 +12,15 @@ import pandas as pd
 import matplotlib.font_manager as fm
 import os
 import easyocr
+import io
 
-
-
+# 设置 pytesseract 路径
 pytesseract.pytesseract.tesseract_cmd = r"E:\Tesseract-OCR\tesseract.exe"
 
+# 设置字体
 fm.fontManager.addfont('SimHei.ttf')  # 确保文件在当前目录
-
-
 matplotlib.rcParams["font.family"] = ("SimHei")
 matplotlib.rcParams["axes.unicode_minus"] = False
-
-
 
 DATA_PATH = "data/user_data.json"
 
@@ -74,11 +71,10 @@ def save_data(new_data):
         json.dump(existing_data, f, ensure_ascii=False, indent=2)
 
 
-
 # 解析图片中的错题内容
-def extract_text_from_image(image_path):
+def extract_text_from_image(image):
     reader = easyocr.Reader(['ch_sim'])  # 使用简体中文
-    result = reader.readtext(image_path)
+    result = reader.readtext(image)
     
     text = ""
     for detection in result:
@@ -86,11 +82,15 @@ def extract_text_from_image(image_path):
     
     return text
 
-# Example usage:
-text = extract_text_from_image('path_to_image.png')
-print(text)
+
+# 图片转换为字节流的辅助函数
+def image_to_bytes(image):
+    img_byte_arr = io.BytesIO()
+    image.save(img_byte_arr, format='PNG')
+    return img_byte_arr.getvalue()
 
 
+# 生成学习报告中的饼图
 def picture(data):
     subjects = data.get("subjects", {})
     report_lines = ["## 📝 学习报告"]
@@ -125,8 +125,7 @@ def picture(data):
     st.pyplot(fig)  # This will display the pie chart directly
 
 
-
-
+# 主函数
 def main():
     st.set_page_config(page_title="小知学伴", layout="wide")
     st.title("🎓 小知学伴 - AI学习助手")
@@ -236,8 +235,6 @@ def main():
             st.markdown("**AI答复：**")
 
             st.write(reply)
-
-
 
 
 if __name__ == '__main__':
