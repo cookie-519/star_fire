@@ -85,7 +85,7 @@ def extract_text_from_image(image):
         raise ValueError("No image provided. Please upload an image.")
     
     # 将上传的图片文件（字节流）转为 PIL 图像
-    img = Image.open(io.BytesIO(image.read()))  # 将字节流转换为 PIL 图像
+    img = Image.open(io.BytesIO(image))  # 将字节流转换为 PIL 图像
 
     # 使用 easyocr 读取图像中的文本
     reader = easyocr.Reader(['ch_sim'])  # 使用简体中文
