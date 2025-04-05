@@ -89,7 +89,7 @@ def extract_text_from_image(image):
 
     # 使用 easyocr 读取图像中的文本
     reader = easyocr.Reader(['ch_sim'])  # 使用简体中文
-    result = reader.readtext(img)
+    result = reader.readtext(image)
     
     text = ""
     for detection in result:
