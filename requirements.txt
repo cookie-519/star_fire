@@ -8,3 +8,7 @@ matplotlib
 packages
 opencv-python-headless==4.7.0.68
 easyocr
+langdetect 
+detect
+collections 
+defaultdict
