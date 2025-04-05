@@ -218,28 +218,38 @@ def main():
             st.warning("请先在左侧填写学习数据")
 
 
-    elif menu == "AI答疑":
+ # AI答疑部分
+elif menu == "AI答疑":
 
-        st.header("🧑‍🏫 提问任意学习问题")
+    st.header("🧑‍🏫 提问任意学习问题")
 
-        uploaded_image = st.file_uploader(f"上传 {subject} 的错题图片", type=["png", "jpg", "jpeg"],
-                                  key=f"{subject}_image")
-    extracted_text = ""
-
+    # 上传问题图片
+    uploaded_image = st.file_uploader("上传问题图片", type=["png", "jpg", "jpeg"], key="question_image")
+    
+    # 识别图片中的文本
+    extracted_question_text = ""
     if uploaded_image:
-        extracted_text = extract_text_from_image(uploaded_image)
-        st.text_area(f"{subject} 识别出的错题内容", extracted_text, key=f"{subject}_ocr_text")
+        # 提取图片中的文本
+        extracted_question_text = extract_text_from_image(uploaded_image)
+        st.text_area("识别出的问题", extracted_question_text, key="question_ocr_text")
 
+    # 用户输入问题文本
+    question = st.text_area("请输入你的问题（可编辑）", extracted_question_text)
 
-        question = st.text_area("请输入你的问题（可编辑）", extracted_question_text)
+    if st.button("AI回答"):
+        # 如果没有上传图片，则直接使用用户输入的问题
+        if not question and extracted_question_text:
+            question = extracted_question_text  # 如果没有输入，使用图片中的文本
 
-        if st.button("AI回答"):
+        if question:
             with st.spinner("AI 正在思考..."):
+                # 使用 Kimi API 获取回答
                 reply = ask_kimi(question)
+                st.markdown("**AI答复：**")
+                st.write(reply)
+        else:
+            st.warning("请输入或上传问题图片以获取答案。")
 
-            st.markdown("**AI答复：**")
-
-            st.write(reply)
 
 
 if __name__ == '__main__':
