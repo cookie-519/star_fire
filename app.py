@@ -14,22 +14,22 @@ import os
 import easyocr
 import io
 from langdetect import detect
+from collections import defaultdict
+from io import BytesIO
+
 
 # 设置 pytesseract 路径
-pytesseract.pytesseract.tesseract_cmd = r"E:\\Tesseract-OCR\\tesseract.exe"
+pytesseract.pytesseract.tesseract_cmd = r"E:\Tesseract-OCR\tesseract.exe"
 
 # 设置字体
-try:
-    fm.fontManager.addfont('SimHei.ttf')
-    matplotlib.rcParams["font.family"] = ("SimHei")
-except Exception as e:
-    print("字体加载失败：", e)
-
+fm.fontManager.addfont('SimHei.ttf')  # 确保文件在当前目录
+matplotlib.rcParams["font.family"] = ("SimHei")
 matplotlib.rcParams["axes.unicode_minus"] = False
 
 DATA_PATH = "data/user_data.json"
 
 
+# Kimi API 请求函数
 def analyze_mistakes_with_kimi(mistake_text):
     url = "https://api.moonshot.cn/v1/chat/completions"
     headers = {
@@ -39,20 +39,25 @@ def analyze_mistakes_with_kimi(mistake_text):
     data = {
         "model": "moonshot-v1-8k",
         "messages": [
-            {"role": "system", "content": "你是一个专业学习导师，请分析以下错题内容，找出学生的共性问题、薄弱知识点，并提出改进建议，尽量精炼且实用。"},
+            {"role": "system",
+             "content": "你是一个专业学习导师，请分析以下错题内容，找出学生的共性问题、薄弱知识点，并提出改进建议，尽量精炼且实用。"},
             {"role": "user", "content": mistake_text}
         ]
     }
     try:
-        for attempt in range(3):
+        for attempt in range(3):  # 最多重试3次
             res = requests.post(url, json=data, headers=headers)
             if res.status_code == 200:
                 return res.json()["choices"][0]["message"]["content"]
+            else:
+                print(f"Request failed with status code {res.status_code}. Retrying...")
+                time.sleep(2)  # 等待2秒后重试
         return "❌ 错题分析失败：服务器未响应"
     except Exception as e:
         return f"❌ 错题分析失败：{e}"
 
 
+# 读取本地数据
 def load_data():
     try:
         with open(DATA_PATH, "r", encoding="utf-8") as f:
@@ -61,44 +66,77 @@ def load_data():
         return {}
 
 
+# 保存数据，支持数据累加
 def save_data(new_data):
     existing_data = load_data()
+
+    # 累加数据
     if "subjects" in existing_data:
         existing_data["subjects"].update(new_data["subjects"])
     else:
         existing_data = new_data
+
     with open(DATA_PATH, "w", encoding="utf-8") as f:
         json.dump(existing_data, f, ensure_ascii=False, indent=2)
 
 
 def extract_text_from_image(image):
     if image is None:
-        return {'chinese': '', 'english': ''}
-    try:
-        reader = easyocr.Reader(['en', 'ch_sim'])
-        result = reader.readtext(image)
-        chinese_text, english_text = [], []
-        for detection in result:
-            detected_text = detection[1]
-            try:
-                language = detect(detected_text)
-                if language == 'zh':
-                    chinese_text.append(detected_text)
-                elif language == 'en':
-                    english_text.append(detected_text)
-            except:
-                continue
-        return {
-            'chinese': "\n".join(chinese_text),
-            'english': "\n".join(english_text)
-        }
-    except Exception as e:
-        return {'chinese': '', 'english': f"❌ 文本识别失败：{e}"}
+        raise ValueError("No image provided. Please upload an image.")
+    
+    # 使用 easyocr 读取图像中的文本
+    reader = easyocr.Reader(['en', 'ch_sim'])  
+    result = reader.readtext(image)
+    
+    # 分类存储英文和中文文本
+    chinese_text = []
+    english_text = []
+    
+    # 对提取的每个文本段使用 langdetect 来检测语言
+    for detection in result:
+        detected_text = detection[1]
+        try:
+            language = detect(detected_text)
+            if language == 'zh':  # 如果是中文
+                chinese_text.append(detected_text)
+            elif language == 'en':  # 如果是英文
+                english_text.append(detected_text)
+        except:
+            continue  # 忽略无法检测的文本
+    
+    # 输出中文和英文文本
+    return {
+        'chinese': "\n".join(chinese_text),
+        'english': "\n".join(english_text)
+    }
 
 
+
+    
+#    text = ""
+ #   for detection in result:
+ #       text += detection[1] + "\n"
+    
+  #  return text
+
+
+
+# 图片转换为字节流的辅助函数
+def image_to_bytes(image):
+    img_byte_arr = io.BytesIO()
+    image.save(img_byte_arr, format='PNG')
+    return img_byte_arr.getvalue()
+
+
+# 生成学习报告中的饼图
 def picture(data):
     subjects = data.get("subjects", {})
-    report_data, subject_names, time_spent_data = [], [], []
+    report_lines = ["## 📝 学习报告"]
+
+    # 创建一个空的 DataFrame，用于展示数据
+    report_data = []
+    subject_names = []
+    time_spent_data = []
 
     for subject, info in subjects.items():
         report_data.append({
@@ -110,16 +148,22 @@ def picture(data):
         subject_names.append(subject)
         time_spent_data.append(info.get("time_spent", 0))
 
+    # 自定义标签显示具体时间和百分比
     def func(pct, allvalues):
-        absolute = int(pct / 100. * sum(allvalues))
-        return f"{absolute}小时\n({pct:.1f}%)"
+        absolute = int(pct / 100.*sum(allvalues))  # 计算具体时间
+        return f"{absolute}小时\n({pct:.1f}%)"  # 格式化输出
 
+    # 绘制合并所有科目学习时间的饼图
     fig, ax = plt.subplots()
     ax.pie(time_spent_data, labels=subject_names, autopct=lambda pct: func(pct, time_spent_data), startangle=50)
-    ax.axis('equal')
-    st.pyplot(fig)
+    ax.axis('equal')  # 保证饼图是圆形的
+    report_lines.append("### 学习时间分布图")
+    
+    # 将图片保存到文件并通过 Streamlit 显示
+    st.pyplot(fig)  # This will display the pie chart directly
 
 
+# 主函数
 def main():
     st.set_page_config(page_title="小知学伴", layout="wide")
     st.title("🎓 小知学伴 - AI学习助手")
@@ -128,8 +172,14 @@ def main():
 
     if menu == "输入学习数据":
         st.header("📥 输入你的学习数据")
+
+        # 用户自定义学科数量和名称
         num_subjects = st.number_input("请输入学科数量", min_value=1, max_value=10, value=1)
-        custom_subjects = [st.text_input(f"请输入第 {i+1} 门学科名称", key=f"subject_{i}") for i in range(num_subjects)]
+
+        custom_subjects = []
+        for i in range(num_subjects):
+            subject_name = st.text_input(f"请输入第 {i+1} 门学科名称", key=f"subject_{i}")
+            custom_subjects.append(subject_name)
 
         selected_subjects = custom_subjects
         subject_data = {}
@@ -138,45 +188,23 @@ def main():
         for subject in selected_subjects:
             st.subheader(f"📘 {subject} 学习情况")
 
-            # 上传图片
-            uploaded_image = st.file_uploader(
-                f"上传 {subject} 的错题图片",
-                type=["png", "jpg", "jpeg"],
-                key=f"{subject}_image"
-            )
+            uploaded_image = st.file_uploader(f"上传 {subject} 的错题图片", type=["png", "jpg", "jpeg"],
+                                              key=f"{subject}_image")
+            extracted_text = ""
 
-            # 初始化 OCR 和错题变量
-            extracted_text = {"chinese": "", "english": ""}
-            mistake_text = ""
-
-            # 提取 OCR 内容（只提一次）
             if uploaded_image is not None:
                 with st.spinner("正在提取文本..."):
-                    image_bytes = uploaded_image.getvalue()  # 保证只读取一次
+                   
+                    image_bytes=uploaded_image.read()  # 读取一次
                     extracted_text = extract_text_from_image(image_bytes)
+                    st.text_area(f"{subject} 识别出的错题内容", extracted_text, key=f"{subject}_ocr_text")
+    # 其他处理逻辑
+            else:
+                st.warning("请先上传图片！")
 
-                    # 显示 OCR 提取的文本
-                    st.markdown("🧾 识别出的原始文本内容：")
-                    st.code(
-                        f"中文部分：\n{extracted_text['chinese']}\n\n英文部分：\n{extracted_text['english']}",
-                        language="text"
-                    )
-
-                    # 设置默认错题描述
-                    mistake_text = extracted_text["chinese"]
-
-            # 用户编辑错题描述
-            mistake = st.text_area(
-                f"{subject} 的错题描述（可编辑）",
-                value=mistake_text,
-                key=f"{subject}_mistake_input"
-            )
-
-            # 用户输入其他备注
+            mistake = st.text_area(f"{subject} 的错题描述（可编辑）", extracted_text, key=f"{subject}_mistake")
             notes = st.text_area(f"{subject} 的其他学习备注", key=f"{subject}_notes")
-            time_spent = st.slider(
-                f"⏱️ 每天用于 {subject} 的学习时间（小时）", 0, 12, 1, key=f"{subject}_time"
-            )
+            time_spent = st.slider(f"⏱️ 每天用于 {subject} 的学习时间（小时）", 0, 12, 1, key=f"{subject}_time")
 
             if mistake:
                 all_mistakes.append(f"{subject}：{mistake}")
@@ -187,9 +215,11 @@ def main():
                 "time_spent": time_spent
             }
 
-
         if st.button("保存数据"):
-            save_data({"subjects": subject_data})
+            data = {
+                "subjects": subject_data
+            }
+            save_data(data)
             st.success("✅ 数据已保存！")
 
         if st.button("清空所有数据"):
@@ -197,6 +227,8 @@ def main():
                 json.dump({}, f, ensure_ascii=False, indent=2)
             st.success("✅ 所有数据已清空！")
 
+
+        # ✅ 错题分析区
         if all_mistakes:
             st.markdown("### 🧠 错题分析")
             st.write("你已输入以下错题：")
@@ -221,30 +253,45 @@ def main():
         else:
             st.warning("请先在左侧填写学习数据")
 
-    elif menu == "AI答疑":
-        st.header("🧑‍🏫 提问任意学习问题")
-        uploaded_image = st.file_uploader("上传问题图片", type=["png", "jpg", "jpeg"], key="question_image")
-        extracted_question_text, combined_text = '', ''
 
+ # AI答疑部分
+    elif menu == "AI答疑":
+    
+        st.header("🧑‍🏫 提问任意学习问题")
+    
+        # 上传问题图片
+        uploaded_image = st.file_uploader("上传问题图片", type=["png", "jpg", "jpeg"], key="question_image")
+        
+        # 识别图片中的文本
+        extracted_question_text = ""
+
+        
         if uploaded_image:
             with st.spinner("正在提取文本..."):
-                image_bytes = uploaded_image.read()
+                image_bytes=uploaded_image.read()  # 读取一次
                 extracted_text = extract_text_from_image(image_bytes)
-                combined_text = f"【中文】\n{extracted_text['chinese']}\n\n【English】\n{extracted_text['english']}"
-                st.text_area(f"识别出的错题内容", combined_text, key=f"question_ocr_text")
+                st.text_area(f"识别出的错题内容", extracted_text, key=f"question_ocr_text")
+    # 其他处理逻辑
         else:
             st.warning("请先上传图片！")
-
-        question = st.text_area("请输入你的问题（可编辑）", combined_text)
-
+    
+        # 用户输入问题文本
+        question = st.text_area("请输入你的问题（可编辑）", extracted_question_text)
+    
         if st.button("AI回答"):
+            # 如果没有上传图片，则直接使用用户输入的问题
+            if not question and extracted_question_text:
+                question = extracted_question_text  # 如果没有输入，使用图片中的文本
+    
             if question:
                 with st.spinner("AI 正在思考..."):
+                    # 使用 Kimi API 获取回答
                     reply = ask_kimi(question)
                     st.markdown("**AI答复：**")
                     st.write(reply)
             else:
                 st.warning("请输入或上传问题图片以获取答案。")
+
 
 
 if __name__ == '__main__':
