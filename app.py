@@ -193,10 +193,11 @@ def main():
             extracted_text = ""
 
             if uploaded_image is not None:
-               
-                image_bytes=uploaded_image.read()  # 读取一次
-                extracted_text = extract_text_from_image(image_bytes)
-                st.text_area(f"{subject} 识别出的错题内容", extracted_text, key=f"{subject}_ocr_text")
+                with st.spinner("正在提取文本..."):
+                   
+                    image_bytes=uploaded_image.read()  # 读取一次
+                    extracted_text = extract_text_from_image(image_bytes)
+                    st.text_area(f"{subject} 识别出的错题内容", extracted_text, key=f"{subject}_ocr_text")
     # 其他处理逻辑
             else:
                 st.warning("请先上传图片！")
@@ -266,10 +267,10 @@ def main():
 
         
         if uploaded_image:
-               
-            image_bytes=uploaded_image.read()  # 读取一次
-            extracted_text = extract_text_from_image(image_bytes)
-            st.text_area(f"识别出的错题内容", extracted_text, key=f"question_ocr_text")
+            with st.spinner("正在提取文本..."):
+                image_bytes=uploaded_image.read()  # 读取一次
+                extracted_text = extract_text_from_image(image_bytes)
+                st.text_area(f"识别出的错题内容", extracted_text, key=f"question_ocr_text")
     # 其他处理逻辑
         else:
             st.warning("请先上传图片！")
