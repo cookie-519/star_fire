@@ -12,6 +12,10 @@ import pandas as pd
 import matplotlib.font_manager as fm
 import os
 
+
+
+pytesseract.pytesseract.tesseract_cmd = r"E:\Tesseract-OCR\tesseract.exe"
+
 fm.fontManager.addfont('SimHei.ttf')  # 确保文件在当前目录
 
 
