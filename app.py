@@ -43,13 +43,16 @@ def analyze_mistakes_with_kimi(mistake_text):
         ]
     }
     try:
-        res = requests.post(url, json=data, headers=headers)
-        res.raise_for_status()
-        return res.json()["choices"][0]["message"]["content"]
+        for attempt in range(3):  # 最多重试3次
+            res = requests.post(url, json=data, headers=headers)
+            if res.status_code == 200:
+                return res.json()["choices"][0]["message"]["content"]
+            else:
+                print(f"Request failed with status code {res.status_code}. Retrying...")
+                time.sleep(2)  # 等待2秒后重试
+        return "❌ 错题分析失败：服务器未响应"
     except Exception as e:
         return f"❌ 错题分析失败：{e}"
-
-
 # 读取本地数据
 def load_data():
     try:
@@ -75,6 +78,18 @@ def save_data(new_data):
 
 # 解析图片中的错题内容
 def extract_text_from_image(image):
+
+    if image is None:
+        raise ValueError("No image provided. Please upload an image.")
+
+    if isinstance(image, str):  # 如果是文件路径或 URL
+        with open(image, "rb") as f:
+            image_bytes = f.read()
+        img = Image.open(BytesIO(image_bytes))
+    else:  # 如果是文件对象或字节流
+        img = Image.open(BytesIO(image.read()))
+
+    
     reader = easyocr.Reader(['ch_sim'])  # 使用简体中文
     
     # 将上传的图片文件（字节流）转为 PIL 图像
