@@ -131,26 +131,52 @@ def main():
         num_subjects = st.number_input("请输入学科数量", min_value=1, max_value=10, value=1)
         custom_subjects = [st.text_input(f"请输入第 {i+1} 门学科名称", key=f"subject_{i}") for i in range(num_subjects)]
 
-        subject_data, all_mistakes = {}, []
+        selected_subjects = custom_subjects
+        subject_data = {}
+        all_mistakes = []
 
-        for subject in custom_subjects:
+        for subject in selected_subjects:
             st.subheader(f"📘 {subject} 学习情况")
-            uploaded_image = st.file_uploader(f"上传 {subject} 的错题图片", type=["png", "jpg", "jpeg"], key=f"{subject}_image")
 
-            extracted_text, combined_text = {'chinese': '', 'english': ''}, ''
+            # 上传图片
+            uploaded_image = st.file_uploader(
+                f"上传 {subject} 的错题图片",
+                type=["png", "jpg", "jpeg"],
+                key=f"{subject}_image"
+            )
 
+            # 初始化 OCR 和错题变量
+            extracted_text = {"chinese": "", "english": ""}
+            mistake_text = ""
+
+            # 提取 OCR 内容（只提一次）
             if uploaded_image is not None:
                 with st.spinner("正在提取文本..."):
-                    image_bytes = uploaded_image.read()
+                    image_bytes = uploaded_image.getvalue()  # 保证只读取一次
                     extracted_text = extract_text_from_image(image_bytes)
-                    combined_text = f"【中文】\n{extracted_text['chinese']}\n\n【English】\n{extracted_text['english']}"
-                    st.text_area(f"{subject} 识别出的错题内容", combined_text, key=f"{subject}_ocr_text")
-            else:
-                st.warning("请先上传图片！")
 
-            mistake = st.text_area(f"{subject} 的错题描述（可编辑）", combined_text, key=f"{subject}_mistake")
+                    # 显示 OCR 提取的文本
+                    st.markdown("🧾 识别出的原始文本内容：")
+                    st.code(
+                        f"中文部分：\n{extracted_text['chinese']}\n\n英文部分：\n{extracted_text['english']}",
+                        language="text"
+                    )
+
+                    # 设置默认错题描述
+                    mistake_text = extracted_text["chinese"]
+
+            # 用户编辑错题描述
+            mistake = st.text_area(
+                f"{subject} 的错题描述（可编辑）",
+                value=mistake_text,
+                key=f"{subject}_mistake_input"
+            )
+
+            # 用户输入其他备注
             notes = st.text_area(f"{subject} 的其他学习备注", key=f"{subject}_notes")
-            time_spent = st.slider(f"⏱️ 每天用于 {subject} 的学习时间（小时）", 0, 12, 1, key=f"{subject}_time")
+            time_spent = st.slider(
+                f"⏱️ 每天用于 {subject} 的学习时间（小时）", 0, 12, 1, key=f"{subject}_time"
+            )
 
             if mistake:
                 all_mistakes.append(f"{subject}：{mistake}")
@@ -160,6 +186,7 @@ def main():
                 "notes": notes,
                 "time_spent": time_spent
             }
+
 
         if st.button("保存数据"):
             save_data({"subjects": subject_data})
