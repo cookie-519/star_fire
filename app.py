@@ -13,6 +13,8 @@ import matplotlib.font_manager as fm
 import os
 import easyocr
 import io
+from io import BytesIO
+
 
 # 设置 pytesseract 路径
 pytesseract.pytesseract.tesseract_cmd = r"E:\Tesseract-OCR\tesseract.exe"
@@ -72,15 +74,14 @@ def save_data(new_data):
 
 
 # 解析图片中的错题内容
-# 解析图片中的错题内容
 def extract_text_from_image(image):
     reader = easyocr.Reader(['ch_sim'])  # 使用简体中文
     
-    # 将上传的图片转换为字节流
-    img_bytes = image.read()  # 读取字节流
-    
-    # 使用字节流进行 OCR 识别
-    result = reader.readtext(img_bytes)
+    # 将上传的图片文件（字节流）转为 PIL 图像
+    img = Image.open(BytesIO(image.read()))  # 将字节流转换为 PIL 图像
+
+    # 使用 easyocr 读取图像中的文本
+    result = reader.readtext(img)
     
     text = ""
     for detection in result:
