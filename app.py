@@ -72,15 +72,22 @@ def save_data(new_data):
 
 
 # 解析图片中的错题内容
+# 解析图片中的错题内容
 def extract_text_from_image(image):
     reader = easyocr.Reader(['ch_sim'])  # 使用简体中文
-    result = reader.readtext(image)
+    
+    # 将上传的图片转换为字节流
+    img_bytes = image.read()  # 读取字节流
+    
+    # 使用字节流进行 OCR 识别
+    result = reader.readtext(img_bytes)
     
     text = ""
     for detection in result:
         text += detection[1] + "\n"
     
     return text
+
 
 
 # 图片转换为字节流的辅助函数
