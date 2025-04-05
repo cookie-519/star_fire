@@ -53,6 +53,8 @@ def analyze_mistakes_with_kimi(mistake_text):
         return "❌ 错题分析失败：服务器未响应"
     except Exception as e:
         return f"❌ 错题分析失败：{e}"
+
+
 # 读取本地数据
 def load_data():
     try:
@@ -81,21 +83,12 @@ def extract_text_from_image(image):
 
     if image is None:
         raise ValueError("No image provided. Please upload an image.")
-
-    if isinstance(image, str):  # 如果是文件路径或 URL
-        with open(image, "rb") as f:
-            image_bytes = f.read()
-        img = Image.open(BytesIO(image_bytes))
-    else:  # 如果是文件对象或字节流
-        img = Image.open(BytesIO(image.read()))
-
-    
-    reader = easyocr.Reader(['ch_sim'])  # 使用简体中文
     
     # 将上传的图片文件（字节流）转为 PIL 图像
-    img = Image.open(BytesIO(image.read()))  # 将字节流转换为 PIL 图像
+    img = Image.open(io.BytesIO(image.read()))  # 将字节流转换为 PIL 图像
 
     # 使用 easyocr 读取图像中的文本
+    reader = easyocr.Reader(['ch_sim'])  # 使用简体中文
     result = reader.readtext(img)
     
     text = ""
@@ -178,7 +171,7 @@ def main():
             extracted_text = ""
 
             if uploaded_image:
-                extracted_text = extract_text_from_image(image)
+                extracted_text = extract_text_from_image(uploaded_image)
                 st.text_area(f"{subject} 识别出的错题内容", extracted_text, key=f"{subject}_ocr_text")
 
             mistake = st.text_area(f"{subject} 的错题描述（可编辑）", extracted_text, key=f"{subject}_mistake")
@@ -245,7 +238,7 @@ def main():
         extracted_question_text = ""
         if uploaded_image:
             # 提取图片中的文本
-            extracted_question_text = extract_text_from_image(image)
+            extracted_question_text = extract_text_from_image(uploaded_image)
             st.text_area("识别出的问题", extracted_question_text, key="question_ocr_text")
     
         # 用户输入问题文本
