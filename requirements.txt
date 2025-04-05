@@ -1,12 +1,8 @@
 streamlit==1.31.1
 requests==2.31.0
-streamlit
-requests
 pillow
 pytesseract
 matplotlib
-packages
 opencv-python-headless==4.7.0.68
 easyocr
-langdetect 
-detect
+langdetect
