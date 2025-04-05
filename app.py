@@ -175,12 +175,11 @@ def main():
                 image_bytes = uploaded_image.read()  # 读取一次
     # 重复使用 image_bytes
                 img = Image.open(BytesIO(image_bytes))
+                extracted_text = extract_text_from_image(img)
+                st.text_area(f"{subject} 识别出的错题内容", extracted_text, key=f"{subject}_ocr_text")
     # 其他处理逻辑
             else:
                 st.warning("请先上传图片！")
-
-                extracted_text = extract_text_from_image(image)
-                st.text_area(f"{subject} 识别出的错题内容", extracted_text, key=f"{subject}_ocr_text")
 
             mistake = st.text_area(f"{subject} 的错题描述（可编辑）", extracted_text, key=f"{subject}_mistake")
             notes = st.text_area(f"{subject} 的其他学习备注", key=f"{subject}_notes")
@@ -251,7 +250,7 @@ def main():
             image_bytes = uploaded_image.read()  # 读取一次
     # 重复使用 image_bytes
             img = Image.open(BytesIO(image_bytes))
-            extracted_text = extract_text_from_image(image)
+            extracted_text = extract_text_from_image(img)
             st.text_area(f"{subject} 识别出的错题内容", extracted_text, key=f"{subject}_ocr_text")
     # 其他处理逻辑
         else:
