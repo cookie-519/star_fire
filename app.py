@@ -16,6 +16,7 @@ import io
 from langdetect import detect
 from collections import defaultdict
 from io import BytesIO
+import numpy as np
 
 
 # 设置 pytesseract 路径
@@ -84,17 +85,34 @@ def extract_text_from_image(image):
     if image is None:
         raise ValueError("No image provided. Please upload an image.")
     
-    # 初始化 EasyOCR 识别器（中英文）
-    reader = easyocr.Reader(['en', 'ch_sim'], gpu=False)
+    try:
+        # 初始化 EasyOCR 识别器（中英文）
+        reader = easyocr.Reader(['en', 'ch_sim'], gpu=False)
+        
+        # 如果输入是字节流，将其转换为 PIL 图像
+        if isinstance(image, bytes):
+            img = Image.open(io.BytesIO(image))
+            image = np.array(img)  # 转换为 NumPy 数组
+        
+        # 如果输入是 PIL 图像，直接转换为 NumPy 数组
+        elif isinstance(image, Image.Image):
+            image = np.array(image)
+        
+        # 如果输入已经是 NumPy 数组，直接使用
+        elif not isinstance(image, np.ndarray):
+            raise ValueError("Unsupported input type. Please provide an image as bytes, PIL.Image.Image, or numpy.ndarray.")
+        
+        # 读取图像中的文本，返回格式：[ [bbox, text, confidence], ... ]
+        result = reader.readtext(image, detail=0)  # detail=0 返回纯文本列表
+        
+        # 拼接成一个完整字符串（每段文字换行）
+        full_text = "\n".join(result)
+        
+        return full_text
     
-    # 读取图像中的文本，返回格式：[ [bbox, text, confidence], ... ]
-    result = reader.readtext(image)
-    
-    # 提取文本，保留原始顺序
-    full_text = [item[1] for item in result]
-
-    # 拼接成一个完整字符串（每段文字换行）
-    return "\n".join(full_text)
+    except Exception as e:
+        # 捕获异常并返回错误信息
+        return f"Error extracting text: {e}"
 
 
 
@@ -253,8 +271,9 @@ def main():
         extracted_question_text = ""
 
         
-        if uploaded_image:
+        if uploaded_image is not None:
             with st.spinner("正在提取文本..."):
+                
                 image_bytes=uploaded_image.read()  # 读取一次
                 extracted_text = extract_text_from_image(image_bytes)
                 st.text_area(f"识别出的错题内容", extracted_text, key=f"question_ocr_text")
