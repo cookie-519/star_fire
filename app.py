@@ -88,7 +88,7 @@ def extract_text_from_image(image):
     img = Image.open(io.BytesIO(image))  # 将字节流转换为 PIL 图像
 
     # 使用 easyocr 读取图像中的文本
-    reader = easyocr.Reader()  # 使用简体中文
+    reader = easyocr.Reader( )  # 使用简体中文
     result = reader.readtext(image)
     
     text = ""
