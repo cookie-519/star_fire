@@ -245,7 +245,7 @@ def main():
         extracted_question_text = ""
         if uploaded_image:
             # 提取图片中的文本
-            extracted_question_text = extract_text_from_image(uploaded_image)
+            extracted_question_text = extract_text_from_image(image)
             st.text_area("识别出的问题", extracted_question_text, key="question_ocr_text")
     
         # 用户输入问题文本
