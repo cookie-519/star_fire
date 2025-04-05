@@ -11,6 +11,7 @@ from utils.report_generator import generate_learning_report
 import pandas as pd
 import matplotlib.font_manager as fm
 import os
+import easyocr
 
 
 
@@ -75,8 +76,19 @@ def save_data(new_data):
 
 
 # 解析图片中的错题内容
-def extract_text_from_image(image):
-    return pytesseract.image_to_string(image, lang="chi_sim")
+def extract_text_from_image(image_path):
+    reader = easyocr.Reader(['ch_sim'])  # 使用简体中文
+    result = reader.readtext(image_path)
+    
+    text = ""
+    for detection in result:
+        text += detection[1] + "\n"
+    
+    return text
+
+# Example usage:
+text = extract_text_from_image('path_to_image.png')
+print(text)
 
 
 def picture(data):
