@@ -84,30 +84,17 @@ def extract_text_from_image(image):
     if image is None:
         raise ValueError("No image provided. Please upload an image.")
     
+    # 初始化 EasyOCR 识别器（中英文）
     reader = easyocr.Reader(['en', 'ch_sim'], gpu=False)
+    
+    # 读取图像中的文本，返回格式：[ [bbox, text, confidence], ... ]
     result = reader.readtext(image)
+    
+    # 提取文本，保留原始顺序
+    full_text = [item[1] for item in result]
 
-    full_text_list = []
-    chinese_text = []
-    english_text = []
-
-    for detection in result:
-        detected_text = detection[1]
-        full_text_list.append(detected_text)
-
-        # 检测语言（try-catch 保障健壮性）
-        try:
-            lang = detect(detected_text)
-            if lang == 'zh':
-                chinese_text.append(detected_text)
-            elif lang == 'en':
-                english_text.append(detected_text)
-        except:
-            continue
-
-    return {
-        "full": "\n".join(full_text_list)
-    }
+    # 拼接成一个完整字符串（每段文字换行）
+    return "\n".join(full_text)
 
 
 
