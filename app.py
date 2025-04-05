@@ -102,8 +102,6 @@ def extract_text_from_image(image):
         elif not isinstance(image, np.ndarray):
             raise ValueError("Unsupported input type. Please provide an image as bytes, PIL.Image.Image, or numpy.ndarray.")
 
-        reader = easyocr.Reader(['en', 'ch_sim'], gpu=False)
-        
         # 读取图像中的文本，返回格式：[ [bbox, text, confidence], ... ]
         result = reader.readtext(image, detail=0)  # detail=0 返回纯文本列表
         
