@@ -175,7 +175,7 @@ def main():
                 image_bytes = uploaded_image.read()  # 读取一次
     # 重复使用 image_bytes
                 img = Image.open(BytesIO(image_bytes))
-                extracted_text = extract_text_from_image(image_bytes)
+                extracted_text = extract_text_from_image(img)
                 st.text_area(f"{subject} 识别出的错题内容", extracted_text, key=f"{subject}_ocr_text")
     # 其他处理逻辑
             else:
@@ -250,7 +250,7 @@ def main():
             image_bytes = uploaded_image.read()  # 读取一次
     # 重复使用 image_bytes
             img = Image.open(BytesIO(image_bytes))
-            extracted_text = extract_text_from_image(image_bytes)
+            extracted_text = extract_text_from_image(img)
             st.text_area(f"{subject} 识别出的错题内容", extracted_text, key=f"{subject}_ocr_text")
     # 其他处理逻辑
         else:
