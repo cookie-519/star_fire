@@ -29,7 +29,7 @@ DATA_PATH = "data/user_data.json"
 
 # Kimi API 请求函数
 def analyze_mistakes_with_kimi(mistake_text):
-    url = "https://api.moonshot.cn/v1"
+    url = "https://api.moonshot.cn/v1/chat/completions"
     headers = {
         "Content-Type": "application/json",
         "Authorization": "sk-I0dxd07uFwsojf6460SVpMDBG3d2jGLgqtyBwD2WjcJeJ6vd"
