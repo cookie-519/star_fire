@@ -81,10 +81,13 @@ def save_data(new_data):
         json.dump(existing_data, f, ensure_ascii=False, indent=2)
 
 
-# 初始化 EasyOCR 识别器（中英文）
-reader = easyocr.Reader(['en', 'ch_sim'], gpu=False)
+
 
 def extract_text_from_image(image):
+
+    # 初始化 EasyOCR 识别器（中英文）
+    reader = easyocr.Reader(['en', 'ch_sim'], gpu=False)
+    
     if image is None:
         raise ValueError("No image provided. Please upload an image.")
     
