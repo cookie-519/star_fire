@@ -169,9 +169,16 @@ def main():
             uploaded_image = st.file_uploader(f"上传 {subject} 的错题图片", type=["png", "jpg", "jpeg"],
                                               key=f"{subject}_image")
             extracted_text = ""
-            image_bytes = uploaded_image.read()
 
             if uploaded_image:
+               
+                image_bytes = uploaded_image.read()  # 读取一次
+    # 重复使用 image_bytes
+                img = Image.open(BytesIO(image_bytes))
+    # 其他处理逻辑
+            else:
+                st.warning("请先上传图片！")
+
                 extracted_text = extract_text_from_image(image_bytes)
                 st.text_area(f"{subject} 识别出的错题内容", extracted_text, key=f"{subject}_ocr_text")
 
@@ -234,15 +241,19 @@ def main():
     
         # 上传问题图片
         uploaded_image = st.file_uploader("上传问题图片", type=["png", "jpg", "jpeg"], key="question_image")
-        image_bytes = uploaded_image.read()
+        
         # 识别图片中的文本
         extracted_question_text = ""
 
         
         if uploaded_image:
-            # 提取图片中的文本
-            extracted_question_text = extract_text_from_image(image_bytes)
-            st.text_area("识别出的问题", extracted_question_text, key="question_ocr_text")
+               
+            image_bytes = uploaded_image.read()  # 读取一次
+    # 重复使用 image_bytes
+            img = Image.open(BytesIO(image_bytes))
+    # 其他处理逻辑
+        else:
+            st.warning("请先上传图片！")
     
         # 用户输入问题文本
         question = st.text_area("请输入你的问题（可编辑）", extracted_question_text)
