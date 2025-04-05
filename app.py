@@ -13,6 +13,8 @@ import matplotlib.font_manager as fm
 import os
 import easyocr
 import io
+from langdetect import detect
+from collections import defaultdict
 from io import BytesIO
 
 
@@ -78,25 +80,44 @@ def save_data(new_data):
         json.dump(existing_data, f, ensure_ascii=False, indent=2)
 
 
-# 解析图片中的错题内容
 def extract_text_from_image(image):
-
     if image is None:
         raise ValueError("No image provided. Please upload an image.")
     
-    # 将上传的图片文件（字节流）转为 PIL 图像
-    img = Image.open(io.BytesIO(image))  # 将字节流转换为 PIL 图像
-
     # 使用 easyocr 读取图像中的文本
-    reader = easyocr.Reader(['en', 'ch_sim'])  # 支持多种语言
+    reader = easyocr.Reader(['en', 'ch_sim', 'math'])  
     result = reader.readtext(image)
+    
+    # 分类存储英文和中文文本
+    chinese_text = []
+    english_text = []
+    
+    # 对提取的每个文本段使用 langdetect 来检测语言
+    for detection in result:
+        detected_text = detection[1]
+        try:
+            language = detect(detected_text)
+            if language == 'zh':  # 如果是中文
+                chinese_text.append(detected_text)
+            elif language == 'en':  # 如果是英文
+                english_text.append(detected_text)
+        except:
+            continue  # 忽略无法检测的文本
+    
+    # 输出中文和英文文本
+    return {
+        'chinese': "\n".join(chinese_text),
+        'english': "\n".join(english_text)
+    }
+
+
 
     
-    text = ""
-    for detection in result:
-        text += detection[1] + "\n"
+#    text = ""
+ #   for detection in result:
+ #       text += detection[1] + "\n"
     
-    return text
+  #  return text
 
 
 
