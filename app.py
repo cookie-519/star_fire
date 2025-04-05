@@ -52,23 +52,36 @@ def clear_data():
         json.dump({}, f, ensure_ascii=False, indent=2)
 
 
-def extract_text_from_image(image):
+# 全局加载 EasyOCR 识别器（避免重复加载）
+@st.cache_resource(show_spinner=False)
+def get_easyocr_reader():
+    return easyocr.Reader(['en', 'ch_sim'], gpu=False)
+
+# 优化后的图像文本提取函数
+def extract_text_from_image(image_bytes):
     try:
-        reader = easyocr.Reader(['en', 'ch_sim'], gpu=False)
+        # 打开图片
+        img = Image.open(io.BytesIO(image_bytes))
+        img = img.convert("RGB")  # 保证格式兼容
 
-        if isinstance(image, bytes):
-            img = Image.open(io.BytesIO(image))
-            image = np.array(img)
-        elif isinstance(image, Image.Image):
-            image = np.array(image)
-        elif not isinstance(image, np.ndarray):
-            raise ValueError("Unsupported input type")
+        # 图像压缩（防止大图崩溃）
+        max_size = (1000, 1000)
+        if img.size[0] > max_size[0] or img.size[1] > max_size[1]:
+            img.thumbnail(max_size)
+            st.info("图片过大，已自动压缩处理。")
 
-        result = reader.readtext(image, detail=0)
+        np_image = np.array(img)
+
+        reader = get_easyocr_reader()
+        result = reader.readtext(np_image, detail=0)
+
+        if not result:
+            return "⚠️ 没有识别出任何文字，请上传更清晰的图片。"
         return "\n".join(result)
 
     except Exception as e:
-        return f"❌ 文本提取失败: {e}"
+        return f"❌ 文本提取失败：{e}"
+
 
 
 def analyze_mistakes_with_kimi(mistake_text):
