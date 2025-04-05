@@ -81,40 +81,40 @@ def save_data(new_data):
         json.dump(existing_data, f, ensure_ascii=False, indent=2)
 
 
-
-
 def extract_text_from_image(image):
-
-    # 初始化 EasyOCR 识别器（中英文）
-    reader = easyocr.Reader(['en', 'ch_sim'], gpu=False)
-    
     if image is None:
         raise ValueError("No image provided. Please upload an image.")
     
     try:
+        # 初始化 EasyOCR 识别器（中英文）
+        reader = easyocr.Reader(['en', 'ch_sim'], gpu=False)
+        
         # 如果输入是字节流，将其转换为 PIL 图像
         if isinstance(image, bytes):
             img = Image.open(io.BytesIO(image))
             image = np.array(img)  # 转换为 NumPy 数组
+        
         # 如果输入是 PIL 图像，直接转换为 NumPy 数组
         elif isinstance(image, Image.Image):
             image = np.array(image)
+        
         # 如果输入已经是 NumPy 数组，直接使用
         elif not isinstance(image, np.ndarray):
             raise ValueError("Unsupported input type. Please provide an image as bytes, PIL.Image.Image, or numpy.ndarray.")
 
-        # 使用 EasyOCR 读取图像中的文本
+        reader = easyocr.Reader(['en', 'ch_sim'], gpu=False)
+        
+        # 读取图像中的文本，返回格式：[ [bbox, text, confidence], ... ]
         result = reader.readtext(image, detail=0)  # detail=0 返回纯文本列表
-        full_text = "\n".join(result)  # 拼接成一个完整字符串（每段文字换行）
+        
+        # 拼接成一个完整字符串（每段文字换行）
+        full_text = "\n".join(result)
+        
         return full_text
     
     except Exception as e:
-        # 如果 EasyOCR 失败，尝试使用 pytesseract
-        try:
-            text = pytesseract.image_to_string(image, lang='chi_sim+eng')
-            return text
-        except Exception as e:
-            return f"Error extracting text: {e}. Please try manual input."
+        # 捕获异常并返回错误信息
+        return f"Error extracting text: {e}"
 
 
 
