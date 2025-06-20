@@ -208,19 +208,19 @@ def generate_report():
         st.markdown(report)
 
         keywords = data.get("keywords", [])
-        st.markdown("## 🎥 推荐学习视频（按知识点）")
-        if not keywords:
-            st.warning("未检测到有效的知识点")
-            return
+        ##st.markdown("## 🎥 推荐学习视频（按知识点）")
+##        if not keywords:
+##            st.warning("未检测到有效的知识点")
+  ##          return
 
-        for kw in keywords:
-            st.markdown(f"### 🎯 知识点：{kw}")
-            videos = search_bilibili_videos(kw, max_results=5)
-            if not videos:
-                st.info("没有找到相关视频")
-            else:
-                for v in videos:
-                    st.markdown(f"- [{v['title']}]({v['link']}) ⏱ {v['duration']}")
+    ##    for kw in keywords:
+      ##      st.markdown(f"### 🎯 知识点：{kw}")
+        ##    videos = search_bilibili_videos(kw, max_results=5)
+          ##  if not videos:
+            ##    st.info("没有找到相关视频")
+          ##  else:
+            ##    for v in videos:
+              ##      st.markdown(f"- [{v['title']}]({v['link']}) ⏱ {v['duration']}")
 
 def ai_question_answer():
     st.header("🧑‍🏫 提问任意学习问题")
