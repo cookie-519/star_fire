@@ -145,16 +145,16 @@ def extract_text_from_image(image_bytes):
 
 
 
-def analyze_mistakes_with_kimi(mistake_text):
+def analyze_weak_points_with_kimi(mistake_text):
     url = "https://api.moonshot.cn/v1/chat/completions"
     headers = {
         "Content-Type": "application/json",
-        "Authorization": "sk-I0dxd07uFwsojf6460SVpMDBG3d2jGLgqtyBwD2WjcJeJ6vd"
+        "Authorization": "sk-你的APIKEY"
     }
     data = {
         "model": "moonshot-v1-8k",
         "messages": [
-            {"role": "system", "content": "你是一个专业学习导师，请分析以下错题内容，找出学生的共性问题、薄弱知识点，并提出改进建议，尽量精炼且实用。"},
+            {"role": "system", "content": "你是一个专业学习导师。请从以下学生错题内容中，**提取出3~5个具体的知识点名称**，每行一个，内容简洁明了，仅列出知识点名称，不要解释或建议。"},
             {"role": "user", "content": mistake_text}
         ]
     }
@@ -163,11 +163,15 @@ def analyze_mistakes_with_kimi(mistake_text):
         for _ in range(3):
             res = requests.post(url, json=data, headers=headers)
             if res.status_code == 200:
-                return res.json()["choices"][0]["message"]["content"]
+                text = res.json()["choices"][0]["message"]["content"]
+                # 分行提取知识点
+                points = [line.strip(" 123456.-") for line in text.strip().splitlines() if line.strip()]
+                return points
             time.sleep(2)
-        return "❌ 错题分析失败：服务器未响应"
+        return []
     except Exception as e:
-        return f"❌ 错题分析失败：{e}"
+        return []
+
 
 
 def draw_pie_chart(data):
@@ -263,35 +267,35 @@ def generate_report():
         report = generate_learning_report(data)
         st.markdown(report)
 
-        # === 视频推荐部分 ===
-        st.markdown("## 🎥 推荐学习视频")
+        # === 视频推荐部分：基于错题知识点 ===
+        st.markdown("## 📽️ 推荐学习视频（按知识点）")
 
-        # 抽取关键词（可升级为用Kimi返回的关键点）
-        keywords = []
+        # 整合所有错题文本
+        all_mistake_texts = []
         for subject, info in data.get("subjects", {}).items():
-            if info.get("mistake"):
-                keywords.append(subject)
+            mistake = info.get("mistake", "")
+            if mistake:
+                all_mistake_texts.append(mistake)
 
-        keywords = list(set(keywords))
+        if not all_mistake_texts:
+            st.info("没有错题内容可分析")
+            return
+
+        with st.spinner("正在分析薄弱知识点..."):
+            keywords = analyze_weak_points_with_kimi("\n".join(all_mistake_texts))
+
         if not keywords:
-            st.info("没有检测到有效的错题关键词")
+            st.warning("未能识别出有效的知识点")
             return
 
         for kw in keywords:
-            st.markdown(f"### 🔍 与“{kw}”相关的推荐视频（30分钟内）")
-
-            all_videos = search_bilibili_videos(kw, max_results=10)
-            if not all_videos:
-                st.warning("未找到相关视频")
-                continue
-
-            selected_videos = recommend_videos_by_time(all_videos, target_time=30)
-
-            for vid in selected_videos:
-                st.markdown(f"- [{vid['title']}]({vid['link']}) ⏱ {vid['duration']}")
-
-            if not selected_videos:
-                st.info("找到的视频都超出了时间限制，请自行搜索查看更多")
+            st.markdown(f"### 🎯 知识点：{kw}")
+            videos = search_bilibili_videos(kw, max_results=5)
+            if not videos:
+                st.write("未找到相关视频")
+            else:
+                for v in videos:
+                    st.markdown(f"- [{v['title']}]({v['link']}) ⏱ {v['duration']}")
 
 
 def ai_question_answer():
