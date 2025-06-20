@@ -276,27 +276,29 @@ def generate_report():
         st.markdown(report)
 
         st.markdown("## 📽️ 推荐学习视频（按知识点）")
-    
-        # 整合所有错题文本
-        all_texts = []
-        for subject, info in data.get("subjects", {}).items():
-            for field in ["mistake", "notes"]:
-                content = info.get(field, "")
-                if content and isinstance(content, str):
-                    all_texts.append(content)
 
-        merged_text = "\n".join(all_texts).strip()
-        if not merged_text:
+        # 整合错题 + 备注内容，用于分析薄弱知识点
+        all_contents = []
+        for subject, info in data.get("subjects", {}).items():
+            mistake = info.get("mistake", "")
+            notes = info.get("notes", "")
+            if mistake:
+                all_contents.append(f"{subject}错题：{mistake}")
+            if notes:
+                all_contents.append(f"{subject}备注：{notes}")
+
+        full_text = "\n".join(all_contents).strip()
+        if not full_text:
             st.info("未找到可分析的内容。")
             return
 
         with st.spinner("正在分析薄弱知识点..."):
-            keywords = analyze_weak_points_with_kimi(merged_text)
+            keywords = analyze_weak_points_with_kimi(full_text)
 
         if not keywords:
             st.warning("未能识别出有效的知识点")
             return
-    
+
         for kw in keywords:
             st.markdown(f"### 🎯 知识点：{kw}")
             videos = search_bilibili_videos(kw, max_results=5)
@@ -305,7 +307,6 @@ def generate_report():
             else:
                 for v in videos:
                     st.markdown(f"- [{v['title']}]({v['link']}) ⏱ {v['duration']}")
-
 
 
 def ai_question_answer():
