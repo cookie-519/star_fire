@@ -171,6 +171,19 @@ def input_learning_data():
             "notes": notes,
             "time_spent": time_spent
         }
+         # === 分析知识点 + 手动指定
+        st.markdown("## 🧠 薄弱知识点分析")
+        keywords = []
+        if merged_text:
+            keywords = analyze_weak_points_with_kimi(merged_text)
+            if keywords:
+                st.success("自动识别到知识点：")
+                st.write(", ".join(keywords))
+        manual_input = st.text_input("✍️ 手动补充知识点（用中文逗号隔开）")
+        if manual_input:
+            keywords += [kw.strip() for kw in manual_input.split("，") if kw.strip()]
+
+        keywords = list(set(keywords))  # 去重
 
     if st.button("💾 保存数据"):
         save_data({"subjects": subject_data})
@@ -199,19 +212,7 @@ def generate_report():
                     all_texts.append(content)
         merged_text = "\n".join(all_texts).strip()
 
-        # === 分析知识点 + 手动指定
-        st.markdown("## 🧠 薄弱知识点分析")
-        keywords = []
-        if merged_text:
-            keywords = analyze_weak_points_with_kimi(merged_text)
-            if keywords:
-                st.success("自动识别到知识点：")
-                st.write(", ".join(keywords))
-        manual_input = st.text_input("✍️ 手动补充知识点（用中文逗号隔开）")
-        if manual_input:
-            keywords += [kw.strip() for kw in manual_input.split("，") if kw.strip()]
-
-        keywords = list(set(keywords))  # 去重
+       
 
         # === 视频推荐
         st.markdown("## 🎥 推荐学习视频（按知识点）")
