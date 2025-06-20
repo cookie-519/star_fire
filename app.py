@@ -35,6 +35,18 @@ def load_data():
     except:
         return {}
 
+def analyze_weak_points_with_kimi(mistake_text):
+    url = "https://api.moonshot.cn/v1/chat/completions"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": "sk-你的APIKEY"
+    }
+    data = {
+        "model": "moonshot-v1-8k",
+        "messages": [
+            {"role": "system", "content": "你是一个专业学习导师。请从以下学生错题内容中，**提取出3~5个具体的知识点名称**，每行一个，内容简洁明了，仅列出知识点名称，不要解释或建议。"},
+            {"role": "user", "content": mistake_text}
+
 
 def save_data(new_data):
     existing_data = load_data()
