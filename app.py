@@ -14,6 +14,7 @@ import numpy as np
 import time
 from kimi_api import ask_kimi
 from utils.report_generator import generate_learning_report
+import re
 
 # 设置 Tesseract 路径
 pytesseract.pytesseract.tesseract_cmd = r"E:\Tesseract-OCR\tesseract.exe"
@@ -34,6 +35,41 @@ def load_data():
             return json.load(f)
     except:
         return {}
+
+def search_bilibili_videos(keyword, max_results=10):
+    url = "https://api.bilibili.com/x/web-interface/search/type"
+    params = {
+        "search_type": "video",
+        "keyword": keyword,
+        "page": 1
+    }
+    headers = {
+        "User-Agent": "Mozilla/5.0"
+    }
+
+    try:
+        res = requests.get(url, params=params, headers=headers, timeout=10)
+        if res.status_code == 200:
+            data = res.json()
+            results = data.get("data", {}).get("result", [])
+            videos = []
+            for item in results:
+                title = re.sub(r"<.*?>", "", item.get("title", ""))
+                link = item.get("arcurl", "")
+                duration = item.get("duration", "00:00")
+                minutes = convert_duration_to_minutes(duration)
+                videos.append({
+                    "title": title,
+                    "link": link,
+                    "duration": duration,
+                    "minutes": minutes
+                })
+            return videos[:max_results]
+        else:
+            return []
+    except Exception as e:
+        return []
+
 
 def analyze_weak_points_with_kimi(mistake_text):
     url = "https://api.moonshot.cn/v1/chat/completions"
