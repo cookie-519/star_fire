@@ -28,6 +28,11 @@ DATA_PATH = "data/user_data.json"
 
 
 # ========== 工具函数 ==========
+def clean_keyword(kw):
+    kw = kw.strip()
+    kw = re.sub(r"[^\u4e00-\u9fa5a-zA-Z0-9]", "", kw)  # 只保留中英文+数字
+    return kw
+
 
 def load_data():
     try:
@@ -50,7 +55,7 @@ def search_bilibili_videos(keyword, max_results=10, retries=3, wait_seconds=2):
     for attempt in range(retries):
         try:
             res = requests.get(url, params=params, headers=headers, timeout=10)
-            if res.status_code == 200:
+            if res.status_code == 200 and "data" in res.json():
                 data = res.json()
                 results = data.get("data", {}).get("result", [])
                 videos = []
@@ -334,8 +339,9 @@ def generate_report():
                     return
 
                 st.markdown("### 🎬 推荐学习视频")
-                for kp in knowledge_points:
-                    st.markdown(f"#### 🎯 知识点：{kp}")
+                for kw in keywords:
+                    kw_cleaned = clean_keyword(kw)
+                    st.markdown(f"### 🎯 知识点：{kw_cleaned}")
                     videos = search_bilibili_videos(kp, max_results=5)
                     if not videos:
                         st.write("未找到相关视频")
