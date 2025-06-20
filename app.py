@@ -71,6 +71,18 @@ def search_bilibili_videos(keyword, max_results=10):
         return []
 
 
+def convert_duration_to_minutes(duration):
+    try:
+        parts = duration.split(":")
+        if len(parts) == 2:
+            return int(parts[0]) + int(parts[1]) / 60
+        elif len(parts) == 3:
+            return int(parts[0]) * 60 + int(parts[1]) + int(parts[2]) / 60
+        return 0
+    except:
+        return 0
+
+
 def analyze_weak_points_with_kimi(mistake_text):
     url = "https://api.moonshot.cn/v1/chat/completions"
     headers = {
@@ -82,6 +94,19 @@ def analyze_weak_points_with_kimi(mistake_text):
         "messages": [
             {"role": "system", "content": "你是一个专业学习导师。请从以下学生错题内容中，**提取出3~5个具体的知识点名称**，每行一个，内容简洁明了，仅列出知识点名称，不要解释或建议。"},
             {"role": "user", "content": mistake_text}
+        ]
+    }
+
+    try:
+        for _ in range(3):
+            res = requests.post(url, json=data, headers=headers)
+            if res.status_code == 200:
+                content = res.json()["choices"][0]["message"]["content"]
+                return [line.strip(" 123456.-") for line in content.strip().splitlines() if line.strip()]
+            time.sleep(2)
+        return []
+    except Exception as e:
+        return []
 
 
 def save_data(new_data):
@@ -252,32 +277,32 @@ def generate_report():
 
         st.markdown("## 📽️ 推荐学习视频（按知识点）")
     
-            # 整合所有错题文本
-            all_mistake_texts = []
-            for subject, info in data.get("subjects", {}).items():
-                mistake = info.get("mistake", "")
-                if mistake:
-                    all_mistake_texts.append(mistake)
+        # 整合所有错题文本
+        all_mistake_texts = []
+        for subject, info in data.get("subjects", {}).items():
+            mistake = info.get("mistake", "")
+            if mistake:
+                all_mistake_texts.append(mistake)
     
-            if not all_mistake_texts:
-                st.info("没有错题内容可分析")
-                return
+        if not all_mistake_texts:
+            st.info("没有错题内容可分析")
+            return
     
-            with st.spinner("正在分析薄弱知识点..."):
-                keywords = analyze_weak_points_with_kimi("\n".join(all_mistake_texts))
+        with st.spinner("正在分析薄弱知识点..."):
+            keywords = analyze_weak_points_with_kimi("\n".join(all_mistake_texts))
     
-            if not keywords:
-                st.warning("未能识别出有效的知识点")
-                return
+        if not keywords:
+            st.warning("未能识别出有效的知识点")
+            return
     
-            for kw in keywords:
-                st.markdown(f"### 🎯 知识点：{kw}")
-                videos = search_bilibili_videos(kw, max_results=5)
-                if not videos:
-                    st.write("未找到相关视频")
-                else:
-                    for v in videos:
-                        st.markdown(f"- [{v['title']}]({v['link']}) ⏱ {v['duration']}")
+        for kw in keywords:
+            st.markdown(f"### 🎯 知识点：{kw}")
+            videos = search_bilibili_videos(kw, max_results=5)
+            if not videos:
+                st.write("未找到相关视频")
+            else:
+                for v in videos:
+                    st.markdown(f"- [{v['title']}]({v['link']}) ⏱ {v['duration']}")
 
 
 
