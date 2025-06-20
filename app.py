@@ -339,7 +339,7 @@ def generate_report():
                     return
 
                 st.markdown("### 🎬 推荐学习视频")
-                for kw in keywords:
+                for kw in keyword:
                     kw_cleaned = clean_keyword(kw)
                     st.markdown(f"### 🎯 知识点：{kw_cleaned}")
                     videos = search_bilibili_videos(kp, max_results=5)
