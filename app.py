@@ -204,6 +204,8 @@ def generate_report():
 
     with st.spinner("正在生成学习报告..."):
         draw_pie_chart(data)
+        report = generate_learning_report(data)
+        st.markdown(report)
 
         keywords = data.get("keywords", [])
         st.markdown("## 🎥 推荐学习视频（按知识点）")
