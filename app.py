@@ -36,7 +36,7 @@ def load_data():
     except:
         return {}
 
-def search_bilibili_videos(keyword, max_results=10):
+def search_bilibili_videos(keyword, max_results=10, retries=3, wait_seconds=2):
     url = "https://api.bilibili.com/x/web-interface/search/type"
     params = {
         "search_type": "video",
@@ -47,28 +47,34 @@ def search_bilibili_videos(keyword, max_results=10):
         "User-Agent": "Mozilla/5.0"
     }
 
-    try:
-        res = requests.get(url, params=params, headers=headers, timeout=10)
-        if res.status_code == 200:
-            data = res.json()
-            results = data.get("data", {}).get("result", [])
-            videos = []
-            for item in results:
-                title = re.sub(r"<.*?>", "", item.get("title", ""))
-                link = item.get("arcurl", "")
-                duration = item.get("duration", "00:00")
-                minutes = convert_duration_to_minutes(duration)
-                videos.append({
-                    "title": title,
-                    "link": link,
-                    "duration": duration,
-                    "minutes": minutes
-                })
-            return videos[:max_results]
-        else:
-            return []
-    except Exception as e:
-        return []
+    for attempt in range(retries):
+        try:
+            res = requests.get(url, params=params, headers=headers, timeout=10)
+            if res.status_code == 200:
+                data = res.json()
+                results = data.get("data", {}).get("result", [])
+                videos = []
+                for item in results:
+                    title = re.sub(r"<.*?>", "", item.get("title", ""))
+                    link = item.get("arcurl", "")
+                    duration = item.get("duration", "00:00")
+                    minutes = convert_duration_to_minutes(duration)
+                    videos.append({
+                        "title": title,
+                        "link": link,
+                        "duration": duration,
+                        "minutes": minutes
+                    })
+                if videos:
+                    return videos[:max_results]
+            else:
+                print(f"请求失败，状态码：{res.status_code}")
+        except Exception as e:
+            print(f"搜索发生异常：{e}")
+        time.sleep(wait_seconds)
+
+    return []
+
 
 
 def convert_duration_to_minutes(duration):
@@ -276,7 +282,7 @@ def generate_report():
         st.markdown(report)
 
     # 整合错题 + 备注内容，用于分析薄弱知识点
-    '''st.markdown("## 📽️ 推荐学习视频（按知识点）")'''
+    #st.markdown("### 📽️ 推荐学习视频（按知识点）")
 
     all_contents = []
     for subject, info in data.get("subjects", {}).items():
