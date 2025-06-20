@@ -275,39 +275,71 @@ def generate_report():
         report = generate_learning_report(data)
         st.markdown(report)
 
-        st.markdown("## 📽️ 推荐学习视频（按知识点）")
+    # 整合错题 + 备注内容，用于分析薄弱知识点
+    st.markdown("## 📽️ 推荐学习视频（按知识点）")
 
-        # 整合错题 + 备注内容，用于分析薄弱知识点
-        all_contents = []
-        for subject, info in data.get("subjects", {}).items():
-            mistake = info.get("mistake", "")
-            notes = info.get("notes", "")
-            if mistake:
-                all_contents.append(f"{subject}错题：{mistake}")
-            if notes:
-                all_contents.append(f"{subject}备注：{notes}")
+    all_contents = []
+    for subject, info in data.get("subjects", {}).items():
+        mistake = info.get("mistake", "")
+        notes = info.get("notes", "")
+        if mistake:
+            all_contents.append(f"{subject}错题：{mistake}")
+        if notes:
+            all_contents.append(f"{subject}备注：{notes}")
 
-        full_text = "\n".join(all_contents).strip()
-        if not full_text:
-            st.info("未找到可分析的内容。")
-            return
+    full_text = "\n".join(all_contents).strip()
+    if not full_text:
+        st.info("未找到可分析的内容。")
+        return
 
-        with st.spinner("正在分析薄弱知识点..."):
-            keywords = analyze_weak_points_with_kimi(full_text)
+    with st.spinner("正在分析关键知识点..."):
+        # 使用 Kimi 分析知识点和常见错误
+        url = "https://api.moonshot.cn/v1/chat/completions"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": "sk-I0dxd07uFwsojf6460SVpMDBG3d2jGLgqtyBwD2WjcJeJ6vd"  # 你的 API KEY
+        }
+        data_payload = {
+            "model": "moonshot-v1-8k",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "你是一个专业学习导师，请根据以下学生的错题与学习备注，提炼出3~5个关键知识点。每个知识点以如下格式输出：\n\n知识点名称：XXX\n含义简述：YYY\n常见问题：ZZZ\n\n请务必每个知识点换行输出，确保格式清晰。"
+                },
+                {
+                    "role": "user",
+                    "content": full_text
+                }
+            ]
+        }
 
-        if not keywords:
-            st.warning("未能识别出有效的知识点")
-            return
+        try:
+            res = requests.post(url, json=data_payload, headers=headers)
+            if res.status_code == 200:
+                content = res.json()["choices"][0]["message"]["content"]
+                st.markdown("### 🧠 Kimi 分析的知识点概览")
+                st.markdown(content)
 
-        for kw in keywords:
-            st.markdown(f"### 🎯 知识点：{kw}")
-            videos = search_bilibili_videos(kw, max_results=5)
-            if not videos:
-                st.write("未找到相关视频")
+                # 提取知识点标题（用于搜索 B站视频）
+                knowledge_points = re.findall(r"知识点名称[:：]\s*(.*)", content)
+                if not knowledge_points:
+                    st.warning("未能识别知识点标题用于推荐")
+                    return
+
+                st.markdown("### 🎬 推荐学习视频")
+                for kp in knowledge_points:
+                    st.markdown(f"#### 🎯 知识点：{kp}")
+                    videos = search_bilibili_videos(kp, max_results=5)
+                    if not videos:
+                        st.write("未找到相关视频")
+                    else:
+                        for v in videos:
+                            st.markdown(f"- [{v['title']}]({v['link']}) ⏱ {v['duration']}")
+
             else:
-                for v in videos:
-                    st.markdown(f"- [{v['title']}]({v['link']}) ⏱ {v['duration']}")
-
+                st.warning("Kimi 分析失败，请稍后重试。")
+        except Exception as e:
+            st.error(f"请求失败：{e}")
 
 def ai_question_answer():
     st.header("🧑‍🏫 提问任意学习问题")
