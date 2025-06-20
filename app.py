@@ -1,4 +1,3 @@
-
 import streamlit as st
 import matplotlib.pyplot as plt
 import matplotlib
@@ -35,14 +34,8 @@ def load_data():
         return {}
 
 def save_data(new_data):
-    existing_data = load_data()
-    if "subjects" in existing_data:
-        existing_data["subjects"].update(new_data["subjects"])
-    else:
-        existing_data = new_data
-
     with open(DATA_PATH, "w", encoding="utf-8") as f:
-        json.dump(existing_data, f, ensure_ascii=False, indent=2)
+        json.dump(new_data, f, ensure_ascii=False, indent=2)
 
 def clear_data():
     with open(DATA_PATH, "w", encoding="utf-8") as f:
@@ -71,7 +64,7 @@ def analyze_weak_points_with_kimi(mistake_text):
     url = "https://api.moonshot.cn/v1/chat/completions"
     headers = {
         "Content-Type": "application/json",
-        "Authorization": "sk-你的APIKEY"
+        "Authorization": "sk-你的APIKEY"  # ← 你需要替换为自己的 API 密钥
     }
     data = {
         "model": "moonshot-v1-8k",
@@ -89,7 +82,7 @@ def analyze_weak_points_with_kimi(mistake_text):
                 return [line.strip(" 123456.-") for line in text.strip().splitlines() if line.strip()]
             time.sleep(2)
         return []
-    except Exception as e:
+    except Exception:
         return []
 
 def search_bilibili_videos(keyword, max_results=5):
@@ -117,7 +110,7 @@ def search_bilibili_videos(keyword, max_results=5):
             return videos[:max_results]
         else:
             return []
-    except Exception as e:
+    except Exception:
         return []
 
 def draw_pie_chart(data):
@@ -148,6 +141,7 @@ def input_learning_data():
     custom_subjects = [st.text_input(f"请输入第 {i+1} 门学科名称", key=f"subject_{i}") for i in range(num_subjects)]
 
     subject_data = {}
+    all_texts = []
 
     for subject in custom_subjects:
         st.subheader(f"📘 {subject} 学习情况")
@@ -166,38 +160,36 @@ def input_learning_data():
         notes = st.text_area(f"{subject} 的学习备注", key=f"{subject}_notes")
         time_spent = st.slider(f"⏱️ 每天用于 {subject} 的学习时间（小时）", 0, 12, 1, key=f"{subject}_time")
 
+        all_texts.append(mistake)
+        all_texts.append(notes)
+
         subject_data[subject] = {
             "mistake": mistake,
             "notes": notes,
             "time_spent": time_spent
         }
 
-        # === 提取所有文本内容
-        all_texts = []
-        for subject, info in data.get("subjects", {}).items():
-            for field in ["mistake", "notes"]:
-                content = info.get(field, "")
-                if content and isinstance(content, str):
-                    all_texts.append(content)
-        merged_text = "\n".join(all_texts).strip()
+    # ========== 分析知识点 ========== #
+    st.markdown("## 🧠 薄弱知识点分析")
+    keywords = []
+    merged_text = "\n".join([t for t in all_texts if t.strip()])
+    if merged_text:
+        keywords = analyze_weak_points_with_kimi(merged_text)
+        if keywords:
+            st.success("自动识别到知识点：")
+            st.write(", ".join(keywords))
 
-         # === 分析知识点 + 手动指定
-        st.markdown("## 🧠 薄弱知识点分析")
-        keywords = []
-        if merged_text:
-            keywords = analyze_weak_points_with_kimi(merged_text)
-            if keywords:
-                st.success("自动识别到知识点：")
-                st.write(", ".join(keywords))
-        manual_input = st.text_input("✍️ 手动补充知识点（用中文逗号隔开）")
-        if manual_input:
-            keywords += [kw.strip() for kw in manual_input.split("，") if kw.strip()]
-
-        keywords = list(set(keywords))  # 去重
+    manual_input = st.text_input("✍️ 手动补充知识点（用中文逗号隔开）")
+    if manual_input:
+        keywords += [kw.strip() for kw in manual_input.split("，") if kw.strip()]
+    keywords = list(set(keywords))
 
     if st.button("💾 保存数据"):
-        save_data({"subjects": subject_data})
-        st.success("✅ 数据已保存！")
+        save_data({
+            "subjects": subject_data,
+            "keywords": keywords
+        })
+        st.success("✅ 数据与知识点已保存！")
 
     if st.button("🧹 清空所有数据"):
         clear_data()
@@ -213,9 +205,7 @@ def generate_report():
     with st.spinner("正在生成学习报告..."):
         draw_pie_chart(data)
 
-        
-
-        # === 视频推荐
+        keywords = data.get("keywords", [])
         st.markdown("## 🎥 推荐学习视频（按知识点）")
         if not keywords:
             st.warning("未检测到有效的知识点")
