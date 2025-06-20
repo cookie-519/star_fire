@@ -28,6 +28,67 @@ DATA_PATH = "data/user_data.json"
 
 # ========== 工具函数 ==========
 
+import re
+
+def search_bilibili_videos(keyword, max_results=10):
+    url = "https://api.bilibili.com/x/web-interface/search/type"
+    params = {
+        "search_type": "video",
+        "keyword": keyword,
+        "page": 1
+    }
+    headers = {
+        "User-Agent": "Mozilla/5.0"
+    }
+
+    try:
+        res = requests.get(url, params=params, headers=headers, timeout=10)
+        if res.status_code == 200:
+            data = res.json()
+            results = data.get("data", {}).get("result", [])
+            videos = []
+            for item in results:
+                title = re.sub(r"<.*?>", "", item.get("title", ""))
+                link = item.get("arcurl", "")
+                duration = item.get("duration", "00:00")
+                minutes = convert_duration_to_minutes(duration)
+                videos.append({
+                    "title": title,
+                    "link": link,
+                    "duration": duration,
+                    "minutes": minutes
+                })
+            return videos[:max_results]
+        else:
+            return []
+    except Exception as e:
+        return []
+
+def convert_duration_to_minutes(duration_str):
+    """把 01:23 或 1:02:10 转换为分钟数"""
+    parts = duration_str.split(":")
+    parts = list(map(int, parts))
+    if len(parts) == 2:
+        return parts[0] + parts[1] / 60
+    elif len(parts) == 3:
+        return parts[0] * 60 + parts[1] + parts[2] / 60
+    else:
+        return 0
+
+def recommend_videos_by_time(videos, target_time=30):
+    """从视频列表中选出最接近目标时间的视频组合（贪心近似法）"""
+    videos = sorted(videos, key=lambda v: v["minutes"])  # 按时长排序
+    selected = []
+    total = 0
+    for video in videos:
+        if len(selected) >= 5:
+            break
+        if total + video["minutes"] <= target_time:
+            selected.append(video)
+            total += video["minutes"]
+    return selected
+
+
 def load_data():
     try:
         with open(DATA_PATH, "r", encoding="utf-8") as f:
@@ -201,6 +262,36 @@ def generate_report():
         draw_pie_chart(data)
         report = generate_learning_report(data)
         st.markdown(report)
+
+        # === 视频推荐部分 ===
+        st.markdown("## 🎥 推荐学习视频")
+
+        # 抽取关键词（可升级为用Kimi返回的关键点）
+        keywords = []
+        for subject, info in data.get("subjects", {}).items():
+            if info.get("mistake"):
+                keywords.append(subject)
+
+        keywords = list(set(keywords))
+        if not keywords:
+            st.info("没有检测到有效的错题关键词")
+            return
+
+        for kw in keywords:
+            st.markdown(f"### 🔍 与“{kw}”相关的推荐视频（30分钟内）")
+
+            all_videos = search_bilibili_videos(kw, max_results=10)
+            if not all_videos:
+                st.warning("未找到相关视频")
+                continue
+
+            selected_videos = recommend_videos_by_time(all_videos, target_time=30)
+
+            for vid in selected_videos:
+                st.markdown(f"- [{vid['title']}]({vid['link']}) ⏱ {vid['duration']}")
+
+            if not selected_videos:
+                st.info("找到的视频都超出了时间限制，请自行搜索查看更多")
 
 
 def ai_question_answer():
