@@ -276,7 +276,7 @@ def generate_report():
         st.markdown(report)
 
     # 整合错题 + 备注内容，用于分析薄弱知识点
-    '''st.markdown("## 📽️ 推荐学习视频（按知识点）")
+    '''st.markdown("## 📽️ 推荐学习视频（按知识点）")'''
 
     all_contents = []
     for subject, info in data.get("subjects", {}).items():
@@ -291,7 +291,7 @@ def generate_report():
     if not full_text:
         st.info("未找到可分析的内容。")
         return
-    '''
+    
 
     with st.spinner("正在分析关键知识点..."):
         # 使用 Kimi 分析知识点和常见错误
