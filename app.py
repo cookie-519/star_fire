@@ -202,6 +202,36 @@ def generate_report():
         report = generate_learning_report(data)
         st.markdown(report)
 
+    st.markdown("## 📽️ 推荐学习视频（按知识点）")
+
+        # 整合所有错题文本
+        all_mistake_texts = []
+        for subject, info in data.get("subjects", {}).items():
+            mistake = info.get("mistake", "")
+            if mistake:
+                all_mistake_texts.append(mistake)
+
+        if not all_mistake_texts:
+            st.info("没有错题内容可分析")
+            return
+
+        with st.spinner("正在分析薄弱知识点..."):
+            keywords = analyze_weak_points_with_kimi("\n".join(all_mistake_texts))
+
+        if not keywords:
+            st.warning("未能识别出有效的知识点")
+            return
+
+        for kw in keywords:
+            st.markdown(f"### 🎯 知识点：{kw}")
+            videos = search_bilibili_videos(kw, max_results=5)
+            if not videos:
+                st.write("未找到相关视频")
+            else:
+                for v in videos:
+                    st.markdown(f"- [{v['title']}]({v['link']}) ⏱ {v['duration']}")
+
+
 
 def ai_question_answer():
     st.header("🧑‍🏫 提问任意学习问题")
