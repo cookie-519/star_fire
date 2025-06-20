@@ -278,19 +278,21 @@ def generate_report():
         st.markdown("## 📽️ 推荐学习视频（按知识点）")
     
         # 整合所有错题文本
-        all_mistake_texts = []
+        all_texts = []
         for subject, info in data.get("subjects", {}).items():
-            mistake = info.get("mistake", "")
-            if mistake:
-                all_mistake_texts.append(mistake)
-    
-        if not all_mistake_texts:
-            st.info("没有错题内容可分析")
+            for field in ["mistake", "notes"]:
+                content = info.get(field, "")
+                if content and isinstance(content, str):
+                    all_texts.append(content)
+
+        merged_text = "\n".join(all_texts).strip()
+        if not merged_text:
+            st.info("未找到可分析的内容。")
             return
-    
+
         with st.spinner("正在分析薄弱知识点..."):
-            keywords = analyze_weak_points_with_kimi("\n".join(all_mistake_texts))
-    
+            keywords = analyze_weak_points_with_kimi(merged_text)
+
         if not keywords:
             st.warning("未能识别出有效的知识点")
             return
