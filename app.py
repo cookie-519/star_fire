@@ -171,6 +171,16 @@ def input_learning_data():
             "notes": notes,
             "time_spent": time_spent
         }
+
+        # === 提取所有文本内容
+        all_texts = []
+        for subject, info in data.get("subjects", {}).items():
+            for field in ["mistake", "notes"]:
+                content = info.get(field, "")
+                if content and isinstance(content, str):
+                    all_texts.append(content)
+        merged_text = "\n".join(all_texts).strip()
+
          # === 分析知识点 + 手动指定
         st.markdown("## 🧠 薄弱知识点分析")
         keywords = []
@@ -203,16 +213,7 @@ def generate_report():
     with st.spinner("正在生成学习报告..."):
         draw_pie_chart(data)
 
-        # === 提取所有文本内容
-        all_texts = []
-        for subject, info in data.get("subjects", {}).items():
-            for field in ["mistake", "notes"]:
-                content = info.get(field, "")
-                if content and isinstance(content, str):
-                    all_texts.append(content)
-        merged_text = "\n".join(all_texts).strip()
-
-       
+        
 
         # === 视频推荐
         st.markdown("## 🎥 推荐学习视频（按知识点）")
