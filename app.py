@@ -339,20 +339,21 @@ def generate_report():
                     return
 
                 st.markdown("### 🎬 推荐学习视频")
-                for kw in keyword:
-                    kw_cleaned = clean_keyword(kw)
-                    st.markdown(f"### 🎯 知识点：{kw_cleaned}")
-                    videos = search_bilibili_videos(kp, max_results=5)
-                    if not videos:
-                        st.write("未找到相关视频")
+                    for kw in knowledge_points:
+                        kw_cleaned = clean_keyword(kw)
+                        st.markdown(f"### 🎯 知识点：{kw_cleaned}")
+                        videos = search_bilibili_videos(kw_cleaned, max_results=5)
+                        if not videos:
+                            search_url = f"https://search.bilibili.com/all?keyword={kw_cleaned}"
+                            st.info(f"🔎 未找到相关视频，可手动查看 [B站搜索结果]({search_url})")
+                        else:
+                            for v in videos:
+                                st.markdown(f"- [{v['title']}]({v['link']}) ⏱ {v['duration']}")
+                    
                     else:
-                        for v in videos:
-                            st.markdown(f"- [{v['title']}]({v['link']}) ⏱ {v['duration']}")
-
-            else:
-                st.warning("Kimi 分析失败，请稍后重试。")
-        except Exception as e:
-            st.error(f"请求失败：{e}")
+                        st.warning("Kimi 分析失败，请稍后重试。")
+                    except Exception as e:
+                        st.error(f"请求失败：{e}")
 
 def ai_question_answer():
     st.header("🧑‍🏫 提问任意学习问题")
