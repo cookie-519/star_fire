@@ -13,7 +13,7 @@ import io
 import numpy as np
 import time
 from kimi_api import ask_kimi
-#from utils.report_generator import generate_learning_report
+from utils.report_generator import generate_learning_report
 import re
 
 # 设置 Tesseract 路径
@@ -165,10 +165,20 @@ def generate_report():
     if not data:
         st.warning("请先录入学习数据")
         return
+
     with st.spinner("正在生成学习报告..."):
         draw_pie_chart(data)
-        report = generate_learning_report(data)
-        st.markdown(report)
+        st.markdown("### 📚 学习数据总结")
+        for subject, info in data.get("subjects", {}).items():
+            st.markdown(f"**{subject}**")
+            st.write(f"- 学习时间：{info.get('time_spent', 0)} 小时/天")
+            mistake = info.get("mistake", "")
+            notes = info.get("notes", "")
+            if mistake:
+                st.write(f"- 错题内容：{mistake}")
+            if notes:
+                st.write(f"- 备注：{notes}")
+
     all_contents = []
     for subject, info in data.get("subjects", {}).items():
         mistake = info.get("mistake", "")
@@ -181,6 +191,7 @@ def generate_report():
     if not full_text:
         st.info("未找到可分析的内容。")
         return
+
     with st.spinner("正在分析关键知识点..."):
         url = "https://api.moonshot.cn/v1/chat/completions"
         headers = {
