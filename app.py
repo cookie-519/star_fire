@@ -13,8 +13,8 @@ import io
 import numpy as np
 import time
 from kimi_api import ask_kimi
-from utils.mastery_analyzer import calculate_mastery_level
-from utils.report_generator import generate_learning_report
+from templates.mastery_analyzer import calculate_mastery_level
+from templates.report_generator import generate_learning_report
 import re
 
 
