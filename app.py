@@ -13,7 +13,7 @@ import io
 import numpy as np
 import time
 from kimi_api import ask_kimi
-from utils.report_generator import generate_learning_report
+#from utils.report_generator import generate_learning_report
 import re
 
 # 设置 Tesseract 路径
