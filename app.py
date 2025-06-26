@@ -13,11 +13,8 @@ import io
 import numpy as np
 import time
 from kimi_api import ask_kimi
-from utils.mastery_analyzer import calculate_mastery_level
 from utils.report_generator import generate_learning_report
 import re
-
-
 
 # 设置 Tesseract 路径
 pytesseract.pytesseract.tesseract_cmd = r"E:\\Tesseract-OCR\\tesseract.exe"
@@ -211,22 +208,6 @@ def generate_report():
                     st.warning("未能识别知识点标题用于推荐")
                     return
                 st.markdown("### 🎬 推荐学习视频")
-
-                # === 结构化保存识别出的知识点 ===
-                records = data.get("records", [])
-                for kp in knowledge_points:
-                    for subject, info in data.get("subjects", {}).items():
-                        if info.get("mistake"):
-                            records.append({
-                                "question": info["mistake"],
-                                "knowledge_point": kp.strip(),
-                                "is_correct": False,
-                                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-                            })
-                data["records"] = records
-                with open(DATA_PATH, "w", encoding="utf-8") as f:
-                    json.dump(data, f, ensure_ascii=False, indent=2)
-
                 for kw in knowledge_points:
                     kw_cleaned = clean_keyword(kw)
                     st.markdown(f"### 🎯 知识点：{kw_cleaned}")
@@ -303,30 +284,16 @@ def ai_question_answer():
                 st.markdown("#### 💬 AI答复")
                 st.write(answer)
 
-def knowledge_master_test():
-    st.header("📚 知识点掌握评估")
-    data = load_data()
-    records = data.get("records", [])
-    if records:
-        mastery = calculate_mastery_level(records)
-        for kp, score in mastery.items():
-            st.write(f"知识点：{kp} —— 掌握度：{score}%")
-            st.progress(score / 100)
-    else:
-        st.info("暂无答题记录")
-
 def main():
     st.set_page_config(page_title="小知学伴", layout="wide")
     st.title("🎓 小知学伴 - AI学习助手")
-    menu = st.sidebar.radio("功能菜单", ["输入学习数据", "生成学习报告", "AI答疑", "知识点掌握评估"])
+    menu = st.sidebar.radio("功能菜单", ["输入学习数据", "生成学习报告", "AI答疑"])
     if menu == "输入学习数据":
         input_learning_data()
     elif menu == "生成学习报告":
         generate_report()
     elif menu == "AI答疑":
         ai_question_answer()
-    elif menu == "知识点掌握评估":
-        knowledge_master_test()
 
 if __name__ == "__main__":
     main()
